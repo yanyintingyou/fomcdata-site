@@ -3,61 +3,141 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FOMC Data — 研究数据与方法</title>
-<meta name="description" content="FOMC 多模态信息沟通与跨境证券流动的研究数据说明与方法框架。">
+<title>FOMC Data — 公开数据源索引</title>
+<meta name="description" content="与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源索引。">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
-<header>
+<header class="masthead">
   <div class="wrap">
-    <h1>FOMC Data</h1>
-    <p class="sub">Multimodal Communication and Cross-Border Portfolio Flows</p>
+    <div class="mark">FOMC Data</div>
+    <h1>公开数据源索引</h1>
+    <p class="lede">与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源。</p>
   </div>
 </header>
 
 <main class="wrap">
 
-  <section>
-    <h2>关于</h2>
-    <p>本站整理一项关于美联储联邦公开市场委员会（FOMC）政策沟通的实证研究所需的数据说明、指标定义与复现材料。</p>
-  </section>
-
-  <section>
-    <h2>研究问题</h2>
-    <p>FOMC 的政策沟通同时包含文本、语音与视觉三类信号。既有研究多聚焦文本，对语调、面部表情、场景构图等信息载体的处理相对有限。本项目尝试把三类信号纳入同一分析框架，考察其对跨境证券投资流动的解释力。</p>
-  </section>
-
-  <section>
-    <h2>数据范围</h2>
-    <ul>
-      <li>样本期间：2011 – 2025 年</li>
-      <li>事件：88 次 FOMC 新闻发布会</li>
-      <li>经济体：34 个</li>
-      <li>被解释变量：基于 TIC / CSLT 口径的六类跨境证券交易率</li>
+  <section class="group">
+    <h2><span class="idx">01</span>美联储</h2>
+    <ul class="items">
+      <li>
+        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy.htm">Federal Reserve Board</a><span class="host">federalreserve.gov</span></div>
+        <p>货币政策框架、政策声明与研究报告</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm">FOMC 会议材料</a><span class="host">federalreserve.gov</span></div>
+        <p>历次会议的声明、纪要与记录文件</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://fred.stlouisfed.org/">FRED</a><span class="host">stlouisfed.org</span></div>
+        <p>美国及国际经济时间序列，覆盖八十余万条指标</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.federalreserve.gov/releases/h15/">H.15 利率</a><span class="host">federalreserve.gov</span></div>
+        <p>国债收益率、联邦基金利率与商业票据利率</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.federalreserve.gov/releases/z1/">Z.1 金融账户</a><span class="host">federalreserve.gov</span></div>
+        <p>美国各部门资产负债表与资金流量</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy/beigebook/">Beige Book</a><span class="host">federalreserve.gov</span></div>
+        <p>十二个联储辖区的景气调查，会前两周发布</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.stlouisfed.org/research/economists/mccracken/fred-databases">FRED-MD / FRED-QD</a><span class="host">stlouisfed.org</span></div>
+        <p>月度与季度宏观数据库，适合大规模因子提取</p>
+      </li>
     </ul>
   </section>
 
-  <section>
-    <h2>方法框架</h2>
-    <p>文本通道使用金融领域预训练语言模型抽取语义与情绪；语音通道提取韵律与能量特征；视觉通道对发布会画面做场景与人物表征。三路表征在时间维度上对齐后合成为综合情绪指标，再进入面板回归与事件研究。</p>
+  <section class="group">
+    <h2><span class="idx">02</span>国际组织</h2>
+    <ul class="items">
+      <li>
+        <div class="head"><a href="https://www.bis.org/statistics/">BIS Statistics</a><span class="host">bis.org</span></div>
+        <p>跨境银行债权、有效汇率、信贷缺口与房地产价格</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://data.imf.org/">IMF Data</a><span class="host">imf.org</span></div>
+        <p>国际金融统计、国际收支、储备构成与官方外汇储备币种</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://data.oecd.org/">OECD Data</a><span class="host">oecd.org</span></div>
+        <p>成员国经济、金融与社会指标</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://data.worldbank.org/">World Bank Open Data</a><span class="host">worldbank.org</span></div>
+        <p>全球发展指标与国别宏观数据</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://data.ecb.europa.eu/">ECB Data Portal</a><span class="host">ecb.europa.eu</span></div>
+        <p>欧元区货币、金融与监管统计</p>
+      </li>
+    </ul>
   </section>
 
-  <section>
-    <h2>状态</h2>
-    <p>数据构建与指标计算已完成，论文撰写进行中。本页随研究进展更新，复现材料在整理完成后发布。</p>
+  <section class="group">
+    <h2><span class="idx">03</span>财政与跨境资本</h2>
+    <ul class="items">
+      <li>
+        <div class="head"><a href="https://ticdata.treasury.gov/">Treasury TIC</a><span class="host">treasury.gov</span></div>
+        <p>跨境证券投资的月度持仓与净流动数据</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://fiscaldata.treasury.gov/">Treasury Fiscal Data</a><span class="host">treasury.gov</span></div>
+        <p>联邦财政收支、债务与国债发行明细</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://home.treasury.gov/policy-issues/international">Treasury International</a><span class="host">treasury.gov</span></div>
+        <p>汇率政策报告与国际经济事务文件</p>
+      </li>
+    </ul>
   </section>
 
-  <section>
-    <h2>联系</h2>
-    <p>数据或方法上的问题，可通过 GitHub 联系：<a href="https://github.com/yanyintingyou">@yanyintingyou</a>。</p>
+  <section class="group">
+    <h2><span class="idx">04</span>市场与监管</h2>
+    <ul class="items">
+      <li>
+        <div class="head"><a href="https://www.sec.gov/edgar">SEC EDGAR</a><span class="host">sec.gov</span></div>
+        <p>上市公司与基金的申报文件全文</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.cboe.com/">CBOE</a><span class="host">cboe.com</span></div>
+        <p>波动率指数、期权与衍生品市场数据</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.finra.org/">FINRA</a><span class="host">finra.org</span></div>
+        <p>场外交易量与做市统计</p>
+      </li>
+    </ul>
+  </section>
+
+  <section class="group">
+    <h2><span class="idx">05</span>文献与工作论文</h2>
+    <ul class="items">
+      <li>
+        <div class="head"><a href="https://www.nber.org/">NBER</a><span class="host">nber.org</span></div>
+        <p>工作论文系列与美国商业周期日期判定</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://ideas.repec.org/">IDEAS / RePEc</a><span class="host">ideas.repec.org</span></div>
+        <p>经济学文献索引与引用统计</p>
+      </li>
+      <li>
+        <div class="head"><a href="https://www.ssrn.com/">SSRN</a><span class="host">ssrn.com</span></div>
+        <p>金融与经济学预印本平台</p>
+      </li>
+    </ul>
   </section>
 
 </main>
 
 <footer>
   <div class="wrap">
-    <p>© 2026 · 内容以研究进展为准</p>
+    <p>以上均为公开可访问的第三方来源 · 最后整理于 2026 年 10 月</p>
   </div>
 </footer>
 
