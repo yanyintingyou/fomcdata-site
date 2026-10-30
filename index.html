@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOMC Data — 研究数据与方法</title>
+<meta name="description" content="FOMC 多模态信息沟通与跨境证券流动的研究数据说明与方法框架。">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>FOMC Data</h1>
+    <p class="sub">Multimodal Communication and Cross-Border Portfolio Flows</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2>关于</h2>
+    <p>本站整理一项关于美联储联邦公开市场委员会（FOMC）政策沟通的实证研究所需的数据说明、指标定义与复现材料。</p>
+  </section>
+
+  <section>
+    <h2>研究问题</h2>
+    <p>FOMC 的政策沟通同时包含文本、语音与视觉三类信号。既有研究多聚焦文本，对语调、面部表情、场景构图等信息载体的处理相对有限。本项目尝试把三类信号纳入同一分析框架，考察其对跨境证券投资流动的解释力。</p>
+  </section>
+
+  <section>
+    <h2>数据范围</h2>
+    <ul>
+      <li>样本期间：2011 – 2025 年</li>
+      <li>事件：88 次 FOMC 新闻发布会</li>
+      <li>经济体：34 个</li>
+      <li>被解释变量：基于 TIC / CSLT 口径的六类跨境证券交易率</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>方法框架</h2>
+    <p>文本通道使用金融领域预训练语言模型抽取语义与情绪；语音通道提取韵律与能量特征；视觉通道对发布会画面做场景与人物表征。三路表征在时间维度上对齐后合成为综合情绪指标，再进入面板回归与事件研究。</p>
+  </section>
+
+  <section>
+    <h2>状态</h2>
+    <p>数据构建与指标计算已完成，论文撰写进行中。本页随研究进展更新，复现材料在整理完成后发布。</p>
+  </section>
+
+  <section>
+    <h2>联系</h2>
+    <p>数据或方法上的问题，可通过 GitHub 联系：<a href="https://github.com/yanyintingyou">@yanyintingyou</a>。</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 · 内容以研究进展为准</p>
+  </div>
+</footer>
+
+</body>
+</html>
