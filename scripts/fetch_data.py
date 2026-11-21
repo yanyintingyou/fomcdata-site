@@ -20,7 +20,12 @@ OUT = os.path.join(ROOT, "public", "data", "market.json")
 FULL_START = date(1996, 1, 1)
 WINDOW_DAYS = 400
 DAILY_TAIL_DAYS = 90
-UA = {
+UA_SITE = {
+    "User-Agent": "fomcdata-site/1.0 (+https://fomcdata.dpdns.org)",
+    "Accept": "*/*",
+}
+# Yahoo answers 403 to non-browser agents; FRED drops the connection for them.
+UA_BROWSER = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
@@ -29,8 +34,8 @@ UA = {
 }
 
 
-def get(url, timeout=45):
-    req = urllib.request.Request(url, headers=UA)
+def get(url, timeout=45, headers=UA_SITE):
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read()
 
@@ -91,7 +96,7 @@ def fetch_yahoo_once(symbol, start, host=YAHOO_HOSTS[0]):
         f"https://{host}/v8/finance/chart/{quote(symbol, safe='')}"
         f"?period1={p1}&period2={p2}&interval=1d"
     )
-    payload = json.loads(get(url))
+    payload = json.loads(get(url, headers=UA_BROWSER))
     result = payload["chart"]["result"][0]
     stamps = result.get("timestamp") or []
     closes = result["indicators"]["quote"][0]["close"]
@@ -331,6 +336,7 @@ def main():
 
     payload = {
         "updated": now,
+        "warnings": failed,
         "series": series,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
