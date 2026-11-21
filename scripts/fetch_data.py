@@ -13,7 +13,7 @@ from urllib.parse import quote
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "data", "market.json")
-START = date(2006, 1, 1)
+START = date(1996, 1, 1)
 DAILY_TAIL_DAYS = 90
 UA = {"User-Agent": "fomcdata-site/1.0 (+https://fomcdata.dpdns.org)"}
 
@@ -45,21 +45,7 @@ def parse_fred(text):
 
 
 def fetch_effr():
-    end = date.today().isoformat()
-    url = (
-        "https://markets.newyorkfed.org/api/rates/unsecured/effr/search.json"
-        f"?startDate={START.isoformat()}&endDate={end}"
-    )
-    payload = json.loads(get(url))
-    rows = []
-    for item in payload.get("refRates", []):
-        try:
-            day = datetime.strptime(item["effectiveDate"][:10], "%Y-%m-%d").date()
-            rows.append((day, float(item["percentRate"])))
-        except (KeyError, ValueError):
-            continue
-    rows.sort()
-    return rows
+    return parse_fred(get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFF"))
 
 
 def fetch_cpi():
@@ -78,7 +64,7 @@ def fetch_unrate():
 
 
 def fetch_yahoo_once(symbol):
-    start = int(datetime(2006, 1, 1, tzinfo=timezone.utc).timestamp())
+    start = int(datetime(START.year, START.month, START.day, tzinfo=timezone.utc).timestamp())
     end = int(datetime.now(timezone.utc).timestamp())
     url = (
         f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}"
