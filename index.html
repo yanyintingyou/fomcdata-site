@@ -29,24 +29,31 @@
 </head>
 <body>
 
+<div class="layout">
+
 <header class="masthead">
-  <div class="wrap">
-    <div class="topbar">
-      <div class="mark">FOMC Data</div>
-      <div class="lang-switch" role="group" aria-label="Language">
-        <button type="button" data-lang="en" aria-pressed="true">EN</button>
-        <span class="sep">/</span>
-        <button type="button" data-lang="zh" aria-pressed="false">中文</button>
-      </div>
+  <div class="topbar">
+    <div class="mark">FOMC Data</div>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
     </div>
-    <h1><span class="en">Public Data Source Index</span><span class="zh">公开数据源索引</span></h1>
-    <p class="lede"><span class="en">Statistical databases, official releases, and literature for research on the Federal Open Market Committee.</span><span class="zh">与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源。</span></p>
   </div>
+  <h1><span class="en">Public Data Source Index</span><span class="zh">公开数据源索引</span></h1>
+  <p class="lede"><span class="en">Statistical databases, official releases, and literature for research on the Federal Open Market Committee.</span><span class="zh">与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源。</span></p>
+  <nav class="toc" aria-label="Sections">
+    <a href="#fed"><span class="idx">01</span><span class="en">Federal Reserve</span><span class="zh">美联储</span></a>
+    <a href="#intl"><span class="idx">02</span><span class="en">International Organizations</span><span class="zh">国际组织</span></a>
+    <a href="#fiscal"><span class="idx">03</span><span class="en">Fiscal and Cross-Border Capital</span><span class="zh">财政与跨境资本</span></a>
+    <a href="#markets"><span class="idx">04</span><span class="en">Markets and Regulation</span><span class="zh">市场与监管</span></a>
+    <a href="#literature"><span class="idx">05</span><span class="en">Literature and Working Papers</span><span class="zh">文献与工作论文</span></a>
+  </nav>
 </header>
 
-<main class="wrap">
+<main>
 
-  <section class="group">
+  <section class="group" id="fed">
     <h2><span class="idx">01</span><span class="en">Federal Reserve</span><span class="zh">美联储</span></h2>
     <ul class="items">
       <li>
@@ -80,7 +87,7 @@
     </ul>
   </section>
 
-  <section class="group">
+  <section class="group" id="intl">
     <h2><span class="idx">02</span><span class="en">International Organizations</span><span class="zh">国际组织</span></h2>
     <ul class="items">
       <li>
@@ -106,7 +113,7 @@
     </ul>
   </section>
 
-  <section class="group">
+  <section class="group" id="fiscal">
     <h2><span class="idx">03</span><span class="en">Fiscal and Cross-Border Capital</span><span class="zh">财政与跨境资本</span></h2>
     <ul class="items">
       <li>
@@ -124,7 +131,7 @@
     </ul>
   </section>
 
-  <section class="group">
+  <section class="group" id="markets">
     <h2><span class="idx">04</span><span class="en">Markets and Regulation</span><span class="zh">市场与监管</span></h2>
     <ul class="items">
       <li>
@@ -142,7 +149,7 @@
     </ul>
   </section>
 
-  <section class="group">
+  <section class="group" id="literature">
     <h2><span class="idx">05</span><span class="en">Literature and Working Papers</span><span class="zh">文献与工作论文</span></h2>
     <ul class="items">
       <li>
@@ -163,10 +170,10 @@
 </main>
 
 <footer>
-  <div class="wrap">
-    <p><span class="en">All sources are publicly accessible third-party sites. Last compiled October 2026.</span><span class="zh">以上均为公开可访问的第三方来源 · 最后整理于 2026 年 10 月</span></p>
-  </div>
+  <p><span class="en">All sources are publicly accessible third-party sites. Last compiled October 2026.</span><span class="zh">以上均为公开可访问的第三方来源 · 最后整理于 2026 年 10 月</span></p>
 </footer>
+
+</div>
 
 <script>
 (function () {

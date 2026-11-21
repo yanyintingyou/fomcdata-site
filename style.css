@@ -23,7 +23,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-.wrap {
+.layout {
   max-width: 720px;
   margin: 0 auto;
   padding: 0 30px;
@@ -91,6 +91,7 @@ html[lang="zh-CN"] .en { display: none; }
   font-weight: 400;
   line-height: 1.14;
   letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
 .lede {
@@ -101,11 +102,44 @@ html[lang="zh-CN"] .en { display: none; }
   line-height: 1.65;
 }
 
+/* ---------- section index ---------- */
+
+.toc {
+  display: none;
+  margin-top: 46px;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+}
+
+.toc a {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+  padding: 7px 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.toc a:hover { color: var(--accent); }
+
+.toc .idx {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--accent);
+  min-width: 18px;
+}
+
 /* ---------- groups ---------- */
 
 main { padding: 0 0 40px; }
 
-.group { padding: 52px 0 8px; }
+.group {
+  padding: 52px 0 8px;
+  scroll-margin-top: 48px;
+}
 
 .group h2 {
   display: flex;
@@ -189,8 +223,47 @@ footer {
   letter-spacing: 0.02em;
 }
 
+footer p { margin: 0; }
+
+/* ---------- wide screens ---------- */
+
+@media (min-width: 1000px) {
+  .layout {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-areas: "side main" "side foot";
+    column-gap: 72px;
+    max-width: 1200px;
+    padding: 0 48px;
+  }
+
+  .masthead {
+    grid-area: side;
+    position: sticky;
+    top: 48px;
+    align-self: start;
+    padding: 92px 0 0;
+    border-bottom: 0;
+  }
+
+  .masthead h1 { font-size: 36px; }
+
+  .toc { display: block; }
+
+  main {
+    grid-area: main;
+    padding: 92px 0 44px;
+  }
+
+  main .group:first-child { padding-top: 0; }
+
+  .group { padding: 56px 0 10px; }
+
+  footer { grid-area: foot; }
+}
+
 @media (max-width: 620px) {
-  .wrap { padding: 0 22px; }
+  .layout { padding: 0 22px; }
   .masthead { padding: 56px 0 38px; }
   .group { padding: 40px 0 4px; }
   .head { flex-direction: column; align-items: flex-start; gap: 3px; }
