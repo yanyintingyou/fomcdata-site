@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Fetch public macro and market series and write public/data/market.json."""
+"""Fetch public macro and market series and write public/data/market.json.
+
+History already in market.json is kept; each run only pulls a recent window
+and merges it in, so the download stays small while the series keeps 30 years.
+"""
 
 import csv
 import io
@@ -13,7 +17,8 @@ from urllib.parse import quote
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "data", "market.json")
-START = date(1996, 1, 1)
+FULL_START = date(1996, 1, 1)
+WINDOW_DAYS = 400
 DAILY_TAIL_DAYS = 90
 UA = {"User-Agent": "fomcdata-site/1.0 (+https://fomcdata.dpdns.org)"}
 
@@ -24,7 +29,7 @@ def get(url, timeout=45):
         return resp.read()
 
 
-def parse_fred(text):
+def parse_fred(text, start):
     if isinstance(text, bytes):
         text = text.decode("utf-8", "replace")
     rows = []
@@ -38,48 +43,37 @@ def parse_fred(text):
             value = float(row[1])
         except ValueError:
             continue
-        if day >= START:
+        if day >= start:
             rows.append((day, value))
     rows.sort()
     return rows
 
 
-def fetch_effr():
-    return parse_fred(get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFF"))
+def fetch_fred(series_id, start):
+    url = (
+        f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
+        f"&cosd={start.isoformat()}"
+    )
+    return parse_fred(get(url), start)
 
 
-def fetch_cpi():
-    rows = parse_fred(get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL"))
-    by_month = {(d.year, d.month): v for d, v in rows}
-    out = []
-    for day, value in rows:
-        base = by_month.get((day.year - 1, day.month))
-        if base:
-            out.append((day, round((value / base - 1) * 100, 2)))
-    return out
-
-
-def fetch_unrate():
-    return parse_fred(get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE"))
-
-
-def fetch_yahoo_once(symbol):
-    start = int(datetime(START.year, START.month, START.day, tzinfo=timezone.utc).timestamp())
-    end = int(datetime.now(timezone.utc).timestamp())
+def fetch_yahoo_once(symbol, start):
+    p1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())
+    p2 = int(datetime.now(timezone.utc).timestamp())
     url = (
         f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}"
-        f"?period1={start}&period2={end}&interval=1d"
+        f"?period1={p1}&period2={p2}&interval=1d"
     )
     payload = json.loads(get(url))
     result = payload["chart"]["result"][0]
-    stamps = result["timestamp"]
+    stamps = result.get("timestamp") or []
     closes = result["indicators"]["quote"][0]["close"]
     rows = []
     for stamp, close in zip(stamps, closes):
         if close is None:
             continue
         day = datetime.fromtimestamp(stamp, timezone.utc).date()
-        if day >= START:
+        if day >= start:
             rows.append((day, float(close)))
     if not rows:
         raise ValueError("empty yahoo series")
@@ -87,56 +81,50 @@ def fetch_yahoo_once(symbol):
     return rows
 
 
-def fetch_yahoo(symbol):
+def fetch_yahoo(symbol, start):
     last = None
     for attempt in range(3):
         try:
-            if attempt:
-                time.sleep(5)
-            else:
-                time.sleep(1.5)
-            return fetch_yahoo_once(symbol)
+            time.sleep(1.5 if attempt == 0 else 5)
+            return fetch_yahoo_once(symbol, start)
         except Exception as exc:  # noqa: BLE001
             last = exc
     raise last
 
 
-def fetch_spx():
-    return fetch_yahoo("^GSPC")
+def fetch_effr(start):
+    return fetch_fred("DFF", start)
 
 
-def fetch_gold():
-    return fetch_yahoo("GC=F")
+def fetch_unrate(start):
+    return fetch_fred("UNRATE", start)
 
 
-def fetch_oil():
-    try:
-        return fetch_yahoo("CL=F")
-    except Exception:  # noqa: BLE001
-        return parse_fred(
-            get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO")
-        )
+def fetch_cpi(start):
+    rows = fetch_fred("CPIAUCSL", FULL_START)
+    by_month = {(d.year, d.month): v for d, v in rows}
+    out = []
+    for day, value in rows:
+        base = by_month.get((day.year - 1, day.month))
+        if base and day >= start:
+            out.append((day, round((value / base - 1) * 100, 2)))
+    return out
 
 
-def fetch_vix():
-    text = get(
-        "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
-    ).decode("utf-8", "replace")
-    rows = []
-    reader = csv.reader(io.StringIO(text))
-    next(reader, None)
-    for row in reader:
-        if len(row) < 5 or not row[4]:
-            continue
-        try:
-            day = datetime.strptime(row[0].strip(), "%m/%d/%Y").date()
-            value = float(row[4])
-        except ValueError:
-            continue
-        if day >= START:
-            rows.append((day, value))
-    rows.sort()
-    return rows
+def fetch_spx(start):
+    return fetch_yahoo("^GSPC", start)
+
+
+def fetch_gold(start):
+    return fetch_yahoo("GC=F", start)
+
+
+def fetch_oil(start):
+    return fetch_yahoo("CL=F", start)
+
+
+def fetch_vix(start):
+    return fetch_yahoo("^VIX", start)
 
 
 def thin(rows):
@@ -152,6 +140,15 @@ def thin(rows):
             iso = day.isocalendar()
             weekly[(iso[0], iso[1])] = (day, value)
     return [weekly[key] for key in sorted(weekly)] + recent
+
+
+def merge(old_points, new_rows):
+    if not old_points:
+        return new_rows
+    if not new_rows:
+        return old_points
+    cutoff = new_rows[0][0]
+    return [p for p in old_points if p[0] < cutoff] + new_rows
 
 
 SPECS = [
@@ -235,10 +232,7 @@ SPECS = [
 ]
 
 
-def build_series(spec):
-    rows = spec["fetch"]()
-    if spec["thin"]:
-        rows = thin(rows)
+def build_series(spec, rows):
     if not rows:
         return None
     last_day, last_value = rows[-1]
@@ -266,17 +260,28 @@ def load_existing():
         return {}
 
 
+def parse_points(raw):
+    return [(datetime.strptime(p[0], "%Y-%m-%d").date(), float(p[1])) for p in raw]
+
+
 def main():
     existing = load_existing()
+    start = date.today() - timedelta(days=WINDOW_DAYS) if existing else FULL_START
     series = {}
     failed = []
     for spec in SPECS:
         key = spec["key"]
         try:
-            item = build_series(spec)
+            rows = spec["fetch"](start)
         except Exception as exc:  # noqa: BLE001
             failed.append(f"{key}: {exc}")
-            item = None
+            rows = []
+        old = existing.get(key, {}).get("points")
+        if old:
+            rows = merge(parse_points(old), rows)
+        if spec["thin"]:
+            rows = thin(rows)
+        item = build_series(spec, rows)
         if item:
             series[key] = item
         elif key in existing:
