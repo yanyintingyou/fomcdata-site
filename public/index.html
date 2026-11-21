@@ -70,7 +70,8 @@
       </figcaption>
       <svg id="chart" viewBox="0 0 640 208" role="img" aria-labelledby="chart-label"></svg>
     </figure>
-    <p class="note"><span class="en">Sources: FRED, Yahoo Finance. Refreshed once a day around 23:00 UTC.</span><span class="zh">数据来源：FRED、Yahoo Finance。每日 23:00 UTC 左右更新一次。</span></p>
+    <p class="stale" id="stale-note" hidden></p>
+    <p class="note"><span class="en">Sources: FRED, Yahoo Finance. Refreshed once a day around 23:00 UTC.</span><span class="zh">数据来源：FRED、Yahoo Finance。每日 23:00 UTC 左右更新一次。</span><span class="run" id="run-time"></span></p>
   </section>
 
   <section class="group" id="fed">
@@ -236,6 +237,7 @@
 
   function renderTiles() {
     var box = document.getElementById("tiles");
+    var zh = document.documentElement.lang === "zh-CN";
     box.innerHTML = "";
     Object.keys(data.series).forEach(function (key) {
       var item = data.series[key];
@@ -244,9 +246,14 @@
       btn.className = "tile";
       btn.setAttribute("data-key", key);
       btn.setAttribute("aria-pressed", key === current ? "true" : "false");
+      var flag = "";
+      if (item.stale) {
+        var tip = zh ? "最近一次抓取未完成，显示的是历史数据" : "Latest refresh failed, showing cached data";
+        flag = '<span class="flag" role="img" aria-label="' + tip + '" title="' + tip + '"></span>';
+      }
       var pts = item.points.slice(-30);
       btn.innerHTML =
-        '<span class="tile-name"><span class="en">' + item.tile_en + '</span><span class="zh">' + item.tile_zh + '</span></span>' +
+        '<span class="tile-name"><span class="en">' + item.tile_en + '</span><span class="zh">' + item.tile_zh + '</span>' + flag + '</span>' +
         '<span class="tile-value">' + fmt(item.last, item.decimals) +
           (item.unit ? '<span class="unit">' + item.unit + "</span>" : "") + "</span>" +
         '<span class="tile-delta">' + deltaText(item) + "</span>" +
@@ -312,6 +319,20 @@
     document.getElementById("chart-label").textContent =
       (zh ? item.label_zh : item.label_en) + " · " + fmt(item.last, item.decimals) +
       (item.unit || "") + " · " + item.asof;
+
+    var stale = document.getElementById("stale-note");
+    stale.hidden = !item.stale;
+    if (item.stale) {
+      stale.textContent = zh
+        ? "最近一次抓取未完成，图表显示截至 " + item.asof + " 的数据。"
+        : "The latest refresh did not complete. Chart shows data through " + item.asof + ".";
+    }
+
+    var run = document.getElementById("run-time");
+    if (run) {
+      var stamp = String(data.updated || "").slice(0, 16).replace("T", " ");
+      run.textContent = stamp ? " · " + (zh ? "最近一次运行 " : "Last run ") + stamp + " UTC" : "";
+    }
   }
 
   function hideCross() {
@@ -401,7 +422,7 @@
       document.getElementById("snapshot").hidden = false;
       renderTiles();
       renderChart();
-      window.__snapshotRender = renderChart;
+      window.__snapshotRender = function () { renderTiles(); renderChart(); };
     })
     .catch(function () {});
 })();

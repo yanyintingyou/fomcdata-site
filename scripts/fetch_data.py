@@ -20,7 +20,13 @@ OUT = os.path.join(ROOT, "public", "data", "market.json")
 FULL_START = date(1996, 1, 1)
 WINDOW_DAYS = 400
 DAILY_TAIL_DAYS = 90
-UA = {"User-Agent": "fomcdata-site/1.0 (+https://fomcdata.dpdns.org)"}
+UA = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    ),
+    "Accept": "*/*",
+}
 
 
 def get(url, timeout=45):
@@ -49,7 +55,21 @@ def parse_fred(text, start):
     return rows
 
 
-def fetch_fred(series_id, start):
+def with_retry(fn, attempts=3, wait=2):
+    last = None
+    for attempt in range(attempts):
+        try:
+            rows = fn()
+            if not rows:
+                raise ValueError("empty series")
+            return rows
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+            time.sleep(wait + attempt * 3)
+    raise last
+
+
+def fred_rows(series_id, start):
     url = (
         f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
         f"&cosd={start.isoformat()}"
@@ -57,11 +77,18 @@ def fetch_fred(series_id, start):
     return parse_fred(get(url), start)
 
 
-def fetch_yahoo_once(symbol, start):
+def fetch_fred(series_id, start):
+    return with_retry(lambda: fred_rows(series_id, start))
+
+
+YAHOO_HOSTS = ("query1.finance.yahoo.com", "query2.finance.yahoo.com")
+
+
+def fetch_yahoo_once(symbol, start, host=YAHOO_HOSTS[0]):
     p1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())
     p2 = int(datetime.now(timezone.utc).timestamp())
     url = (
-        f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}"
+        f"https://{host}/v8/finance/chart/{quote(symbol, safe='')}"
         f"?period1={p1}&period2={p2}&interval=1d"
     )
     payload = json.loads(get(url))
@@ -83,12 +110,13 @@ def fetch_yahoo_once(symbol, start):
 
 def fetch_yahoo(symbol, start):
     last = None
-    for attempt in range(3):
+    time.sleep(2)
+    for attempt in range(4):
         try:
-            time.sleep(1.5 if attempt == 0 else 5)
-            return fetch_yahoo_once(symbol, start)
+            return fetch_yahoo_once(symbol, start, YAHOO_HOSTS[attempt % 2])
         except Exception as exc:  # noqa: BLE001
             last = exc
+            time.sleep(5 * (attempt + 1))
     raise last
 
 
@@ -101,7 +129,7 @@ def fetch_unrate(start):
 
 
 def fetch_cpi(start):
-    rows = fetch_fred("CPIAUCSL", FULL_START)
+    rows = with_retry(lambda: fred_rows("CPIAUCSL", FULL_START))
     by_month = {(d.year, d.month): v for d, v in rows}
     out = []
     for day, value in rows:
@@ -148,7 +176,8 @@ def merge(old_points, new_rows):
     if not new_rows:
         return old_points
     cutoff = new_rows[0][0]
-    return [p for p in old_points if p[0] < cutoff] + new_rows
+    tail = [p for p in old_points if p[0] > new_rows[-1][0]]
+    return [p for p in old_points if p[0] < cutoff] + new_rows + tail
 
 
 SPECS = [
@@ -267,35 +296,41 @@ def parse_points(raw):
 def main():
     existing = load_existing()
     start = date.today() - timedelta(days=WINDOW_DAYS) if existing else FULL_START
+    now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     series = {}
     failed = []
     for spec in SPECS:
         key = spec["key"]
+        prev = existing.get(key) or {}
         try:
             rows = spec["fetch"](start)
+            error = None
         except Exception as exc:  # noqa: BLE001
-            failed.append(f"{key}: {exc}")
             rows = []
-        old = existing.get(key, {}).get("points")
+            error = str(exc)
+        old = prev.get("points")
         if old:
             rows = merge(parse_points(old), rows)
         if spec["thin"]:
             rows = thin(rows)
         item = build_series(spec, rows)
-        if item:
-            series[key] = item
-        elif key in existing:
-            series[key] = existing[key]
-            failed.append(f"{key}: kept previous data")
-        else:
+        if not item:
+            if key in existing:
+                series[key] = existing[key]
             failed.append(f"{key}: no data")
+            continue
+        item["stale"] = bool(error)
+        item["fetched"] = prev.get("fetched") if error else now
+        series[key] = item
+        if error:
+            failed.append(f"{key}: {error}")
 
     if not series:
         print("no series available", file=sys.stderr)
         return 1
 
     payload = {
-        "updated": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "updated": now,
         "series": series,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -303,7 +338,8 @@ def main():
         json.dump(payload, fh, separators=(",", ":"), ensure_ascii=False)
 
     for key, item in series.items():
-        print(f"{key}: {item['last']}{item['unit']} as of {item['asof']} ({len(item['points'])} points)")
+        flag = " STALE" if item.get("stale") else ""
+        print(f"{key}: {item['last']}{item['unit']} as of {item['asof']} ({len(item['points'])} points){flag}")
     if failed:
         print("warnings: " + "; ".join(failed), file=sys.stderr)
     return 0
