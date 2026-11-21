@@ -6,8 +6,10 @@ import io
 import json
 import os
 import sys
+import time
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
+from urllib.parse import quote
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "data", "market.json")
@@ -75,11 +77,11 @@ def fetch_unrate():
     return parse_fred(get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE"))
 
 
-def fetch_spx_yahoo():
+def fetch_yahoo_once(symbol):
     start = int(datetime(2006, 1, 1, tzinfo=timezone.utc).timestamp())
     end = int(datetime.now(timezone.utc).timestamp())
     url = (
-        "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC"
+        f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}"
         f"?period1={start}&period2={end}&interval=1d"
     )
     payload = json.loads(get(url))
@@ -99,30 +101,35 @@ def fetch_spx_yahoo():
     return rows
 
 
-def fetch_spx_stooq():
-    text = get("https://stooq.com/q/d/l/?s=%5Espx&i=d").decode("utf-8", "replace")
-    reader = csv.reader(io.StringIO(text))
-    next(reader, None)
-    rows = []
-    for row in reader:
-        if len(row) < 5 or not row[4]:
-            continue
+def fetch_yahoo(symbol):
+    last = None
+    for attempt in range(3):
         try:
-            day = datetime.strptime(row[0][:10], "%Y-%m-%d").date()
-            value = float(row[4])
-        except ValueError:
-            continue
-        if day >= START:
-            rows.append((day, value))
-    rows.sort()
-    return rows
+            if attempt:
+                time.sleep(5)
+            else:
+                time.sleep(1.5)
+            return fetch_yahoo_once(symbol)
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+    raise last
 
 
 def fetch_spx():
+    return fetch_yahoo("^GSPC")
+
+
+def fetch_gold():
+    return fetch_yahoo("GC=F")
+
+
+def fetch_oil():
     try:
-        return fetch_spx_yahoo()
+        return fetch_yahoo("CL=F")
     except Exception:  # noqa: BLE001
-        return fetch_spx_stooq()
+        return parse_fred(
+            get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO")
+        )
 
 
 def fetch_vix():
@@ -207,6 +214,28 @@ SPECS = [
         "thin": True,
     },
     {
+        "key": "gold",
+        "fetch": fetch_gold,
+        "label_en": "Gold futures, USD per ounce",
+        "label_zh": "黄金期货，美元/盎司",
+        "tile_en": "Gold",
+        "tile_zh": "黄金",
+        "unit": "",
+        "decimals": 0,
+        "thin": True,
+    },
+    {
+        "key": "oil",
+        "fetch": fetch_oil,
+        "label_en": "WTI crude futures, USD per barrel",
+        "label_zh": "WTI 原油期货，美元/桶",
+        "tile_en": "WTI",
+        "tile_zh": "WTI 原油",
+        "unit": "",
+        "decimals": 2,
+        "thin": True,
+    },
+    {
         "key": "vix",
         "fetch": fetch_vix,
         "label_en": "VIX index",
@@ -267,6 +296,8 @@ def main():
         elif key in existing:
             series[key] = existing[key]
             failed.append(f"{key}: kept previous data")
+        else:
+            failed.append(f"{key}: no data")
 
     if not series:
         print("no series available", file=sys.stderr)
