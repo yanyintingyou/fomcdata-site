@@ -62,6 +62,10 @@ GitHub Actions deploys with `cloudflare/wrangler-action`. The workflow reads two
 
 To deploy from your machine, put a token in the environment and run `npx wrangler deploy`.
 
+## Licensing
+
+Site code is MIT, see `LICENSE`. Data in `public/data/` follows its sources, listed in `LICENSE-DATA.md`. Research datasets are released as separate repositories with their own license and DOI.
+
 ## Notes
 
 A scheduled run set for 23:00 UTC usually starts within half an hour.

@@ -62,6 +62,10 @@ GitHub Actions 用 `cloudflare/wrangler-action` 部署，读取两个仓库密�
 
 在本机部署时，把 token 放进环境变量，运行 `npx wrangler deploy`。
 
+## 许可
+
+站点代码用 MIT，见 `LICENSE`。`public/data/` 里的数据按来源条款，逐条列在 `LICENSE-DATA.md`。研究数据集单独成库发布，各带许可证与 DOI。
+
 ## 说明
 
 定时任务通常在 23:00 UTC 之后半小时内启动。
