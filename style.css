@@ -225,6 +225,20 @@ footer {
 
 footer p { margin: 0; }
 
+footer p + p { margin-top: 9px; }
+
+footer a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+footer a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* ---------- wide screens ---------- */
 
 @media (min-width: 1000px) {
