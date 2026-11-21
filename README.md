@@ -32,7 +32,7 @@ A push to `main` deploys the current files without fetching. To refresh data by 
 
 ## When a source fails
 
-The script keeps the stored points for that series, sets `stale: true`, records the error in `warnings`, and continues with the other series. The page marks the affected tile with a small dot and prints the data cutoff under the chart, so a frozen series never passes for a live one.
+The script keeps the stored points for that series, sets `stale: true`, records the error in `warnings`, and continues with the other series. The page marks the affected tile with a small dot and prints the data cutoff under the chart.
 
 FRED and Yahoo want different `User-Agent` headers: a plain one for FRED, a browser string for Yahoo. The script sets both per host, and each host gets retries with growing waits.
 
@@ -45,7 +45,7 @@ scripts/fetch_data.py  fetch, merge, thin, and flag stale series
 wrangler.toml          Worker name and assets directory
 ```
 
-The Worker serves static assets and runs no server-side code. There is no database, no form, and no user input.
+The Worker serves static assets.
 
 ## Local preview
 
@@ -64,6 +64,6 @@ To deploy from your machine, put a token in the environment and run `npx wrangle
 
 ## Notes
 
-GitHub does not run scheduled workflows on time. A run set for 23:00 UTC usually starts within half an hour. Daily data does not care.
+A scheduled run set for 23:00 UTC usually starts within half an hour.
 
-The index links to third-party sites. Those publishers own their data. This repository has no license file yet.
+The index links to third-party sites. Those publishers own their data. The repository has no license file.
