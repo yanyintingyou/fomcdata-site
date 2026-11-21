@@ -1,20 +1,56 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>页面不存在 — FOMC Data</title>
+<title>Page not found — FOMC Data</title>
 <link rel="stylesheet" href="/style.css">
+<script>
+(function () {
+  var TITLE = { en: "Page not found — FOMC Data", zh: "页面不存在 — FOMC Data" };
+  window.setSiteLang = function (lang) {
+    var key = lang === "zh" ? "zh" : "en";
+    document.documentElement.lang = key === "zh" ? "zh-CN" : "en";
+    document.title = TITLE[key];
+    var b = document.querySelectorAll("[data-lang]");
+    for (var i = 0; i < b.length; i++) {
+      b[i].setAttribute("aria-pressed", b[i].getAttribute("data-lang") === key ? "true" : "false");
+    }
+  };
+  window.setSiteLang(localStorage.getItem("fomcdata-lang"));
+})();
+</script>
 </head>
 <body>
 
 <header class="masthead">
   <div class="wrap">
-    <div class="mark">FOMC Data</div>
+    <div class="topbar">
+      <div class="mark">FOMC Data</div>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <span class="sep">/</span>
+        <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+      </div>
+    </div>
     <h1>404</h1>
-    <p class="lede">这个地址没有内容。<a href="/" style="color:var(--accent);text-decoration:none;">返回索引</a></p>
+    <p class="lede"><span class="en">This address has no content. <a href="/" style="color:var(--accent);text-decoration:none;">Return to the index</a></span><span class="zh">这个地址没有内容。<a href="/" style="color:var(--accent);text-decoration:none;">返回索引</a></span></p>
   </div>
 </header>
+
+<script>
+(function () {
+  var buttons = document.querySelectorAll("[data-lang]");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var lang = this.getAttribute("data-lang");
+      window.setSiteLang(lang);
+      localStorage.setItem("fomcdata-lang", lang);
+    });
+  }
+  window.setSiteLang(localStorage.getItem("fomcdata-lang"));
+})();
+</script>
 
 </body>
 </html>

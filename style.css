@@ -44,6 +44,46 @@ body {
   font-weight: 600;
 }
 
+/* ---------- language switch ---------- */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.lang-switch button {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--dim);
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.lang-switch button:hover { color: var(--ink); }
+
+.lang-switch button[aria-pressed="true"] { color: var(--accent); }
+
+.lang-switch .sep { color: var(--rule); }
+
+html[lang="en"] .zh,
+html[lang="zh-CN"] .en { display: none; }
+
 .masthead h1 {
   margin: 26px 0 0;
   font-family: var(--serif);

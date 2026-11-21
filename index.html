@@ -1,134 +1,161 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FOMC Data — 公开数据源索引</title>
-<meta name="description" content="与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源索引。">
+<title>FOMC Data — Public Data Source Index</title>
+<meta name="description" content="An index of statistical databases, official releases, and literature related to Federal Open Market Committee research.">
 <link rel="stylesheet" href="/style.css">
+<script>
+(function () {
+  var META = {
+    en: { title: "FOMC Data — Public Data Source Index", desc: "An index of statistical databases, official releases, and literature related to Federal Open Market Committee research." },
+    zh: { title: "FOMC Data — 公开数据源索引", desc: "与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源索引。" }
+  };
+  window.setSiteLang = function (lang) {
+    var key = lang === "zh" ? "zh" : "en";
+    document.documentElement.lang = key === "zh" ? "zh-CN" : "en";
+    document.title = META[key].title;
+    var m = document.querySelector('meta[name="description"]');
+    if (m) m.setAttribute("content", META[key].desc);
+    var b = document.querySelectorAll("[data-lang]");
+    for (var i = 0; i < b.length; i++) {
+      b[i].setAttribute("aria-pressed", b[i].getAttribute("data-lang") === key ? "true" : "false");
+    }
+  };
+  window.setSiteLang(localStorage.getItem("fomcdata-lang"));
+})();
+</script>
 </head>
 <body>
 
 <header class="masthead">
   <div class="wrap">
-    <div class="mark">FOMC Data</div>
-    <h1>公开数据源索引</h1>
-    <p class="lede">与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源。</p>
+    <div class="topbar">
+      <div class="mark">FOMC Data</div>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <span class="sep">/</span>
+        <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+      </div>
+    </div>
+    <h1><span class="en">Public Data Source Index</span><span class="zh">公开数据源索引</span></h1>
+    <p class="lede"><span class="en">Statistical databases, official releases, and literature for research on the Federal Open Market Committee.</span><span class="zh">与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源。</span></p>
   </div>
 </header>
 
 <main class="wrap">
 
   <section class="group">
-    <h2><span class="idx">01</span>美联储</h2>
+    <h2><span class="idx">01</span><span class="en">Federal Reserve</span><span class="zh">美联储</span></h2>
     <ul class="items">
       <li>
-        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy.htm">Federal Reserve Board</a><span class="host">federalreserve.gov</span></div>
-        <p>货币政策框架、政策声明与研究报告</p>
+        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy.htm"><span class="en">Federal Reserve Board</span><span class="zh">美联储理事会</span></a><span class="host">federalreserve.gov</span></div>
+        <p><span class="en">Monetary policy framework, policy statements, and research.</span><span class="zh">货币政策框架、政策声明与研究报告</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm">FOMC 会议材料</a><span class="host">federalreserve.gov</span></div>
-        <p>历次会议的声明、纪要与记录文件</p>
+        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"><span class="en">FOMC Meeting Materials</span><span class="zh">FOMC 会议材料</span></a><span class="host">federalreserve.gov</span></div>
+        <p><span class="en">Statements, minutes, and transcripts from past meetings.</span><span class="zh">历次会议的声明、纪要与记录文件</span></p>
       </li>
       <li>
         <div class="head"><a href="https://fred.stlouisfed.org/">FRED</a><span class="host">stlouisfed.org</span></div>
-        <p>美国及国际经济时间序列，覆盖八十余万条指标</p>
+        <p><span class="en">Economic time series for the United States and the world, over 800,000 indicators.</span><span class="zh">美国及国际经济时间序列，覆盖八十余万条指标</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://www.federalreserve.gov/releases/h15/">H.15 利率</a><span class="host">federalreserve.gov</span></div>
-        <p>国债收益率、联邦基金利率与商业票据利率</p>
+        <div class="head"><a href="https://www.federalreserve.gov/releases/h15/"><span class="en">H.15 Selected Interest Rates</span><span class="zh">H.15 利率</span></a><span class="host">federalreserve.gov</span></div>
+        <p><span class="en">Treasury yields, the federal funds rate, and commercial paper rates.</span><span class="zh">国债收益率、联邦基金利率与商业票据利率</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://www.federalreserve.gov/releases/z1/">Z.1 金融账户</a><span class="host">federalreserve.gov</span></div>
-        <p>美国各部门资产负债表与资金流量</p>
+        <div class="head"><a href="https://www.federalreserve.gov/releases/z1/"><span class="en">Z.1 Financial Accounts</span><span class="zh">Z.1 金融账户</span></a><span class="host">federalreserve.gov</span></div>
+        <p><span class="en">Balance sheets and flow of funds for every sector of the U.S. economy.</span><span class="zh">美国各部门资产负债表与资金流量</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy/beigebook/">Beige Book</a><span class="host">federalreserve.gov</span></div>
-        <p>十二个联储辖区的景气调查，会前两周发布</p>
+        <div class="head"><a href="https://www.federalreserve.gov/monetarypolicy/beigebook/"><span class="en">Beige Book</span><span class="zh">褐皮书</span></a><span class="host">federalreserve.gov</span></div>
+        <p><span class="en">Business conditions across the twelve Federal Reserve districts, published two weeks before each meeting.</span><span class="zh">十二个联储辖区的景气调查，会前两周发布</span></p>
       </li>
       <li>
         <div class="head"><a href="https://www.stlouisfed.org/research/economists/mccracken/fred-databases">FRED-MD / FRED-QD</a><span class="host">stlouisfed.org</span></div>
-        <p>月度与季度宏观数据库，适合大规模因子提取</p>
+        <p><span class="en">Monthly and quarterly macro databases for large-scale factor extraction.</span><span class="zh">月度与季度宏观数据库，适合大规模因子提取</span></p>
       </li>
     </ul>
   </section>
 
   <section class="group">
-    <h2><span class="idx">02</span>国际组织</h2>
+    <h2><span class="idx">02</span><span class="en">International Organizations</span><span class="zh">国际组织</span></h2>
     <ul class="items">
       <li>
         <div class="head"><a href="https://www.bis.org/statistics/">BIS Statistics</a><span class="host">bis.org</span></div>
-        <p>跨境银行债权、有效汇率、信贷缺口与房地产价格</p>
+        <p><span class="en">Cross-border bank claims, effective exchange rates, credit gaps, and property prices.</span><span class="zh">跨境银行债权、有效汇率、信贷缺口与房地产价格</span></p>
       </li>
       <li>
         <div class="head"><a href="https://data.imf.org/">IMF Data</a><span class="host">imf.org</span></div>
-        <p>国际金融统计、国际收支、储备构成与官方外汇储备币种</p>
+        <p><span class="en">International financial statistics, balance of payments, reserve composition, and official foreign exchange reserves by currency.</span><span class="zh">国际金融统计、国际收支、储备构成与官方外汇储备币种</span></p>
       </li>
       <li>
         <div class="head"><a href="https://data.oecd.org/">OECD Data</a><span class="host">oecd.org</span></div>
-        <p>成员国经济、金融与社会指标</p>
+        <p><span class="en">Economic, financial, and social indicators for member countries.</span><span class="zh">成员国经济、金融与社会指标</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://data.worldbank.org/">World Bank Open Data</a><span class="host">worldbank.org</span></div>
-        <p>全球发展指标与国别宏观数据</p>
+        <div class="head"><a href="https://data.worldbank.org/"><span class="en">World Bank Open Data</span><span class="zh">世界银行公开数据</span></a><span class="host">worldbank.org</span></div>
+        <p><span class="en">Global development indicators and country-level macro data.</span><span class="zh">全球发展指标与国别宏观数据</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://data.ecb.europa.eu/">ECB Data Portal</a><span class="host">ecb.europa.eu</span></div>
-        <p>欧元区货币、金融与监管统计</p>
+        <div class="head"><a href="https://data.ecb.europa.eu/"><span class="en">ECB Data Portal</span><span class="zh">欧洲央行数据门户</span></a><span class="host">ecb.europa.eu</span></div>
+        <p><span class="en">Monetary, financial, and supervisory statistics for the euro area.</span><span class="zh">欧元区货币、金融与监管统计</span></p>
       </li>
     </ul>
   </section>
 
   <section class="group">
-    <h2><span class="idx">03</span>财政与跨境资本</h2>
+    <h2><span class="idx">03</span><span class="en">Fiscal and Cross-Border Capital</span><span class="zh">财政与跨境资本</span></h2>
     <ul class="items">
       <li>
-        <div class="head"><a href="https://ticdata.treasury.gov/">Treasury TIC</a><span class="host">treasury.gov</span></div>
-        <p>跨境证券投资的月度持仓与净流动数据</p>
+        <div class="head"><a href="https://ticdata.treasury.gov/"><span class="en">Treasury TIC</span><span class="zh">美国财政部 TIC</span></a><span class="host">treasury.gov</span></div>
+        <p><span class="en">Monthly holdings and net flows of cross-border securities investment.</span><span class="zh">跨境证券投资的月度持仓与净流动数据</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://fiscaldata.treasury.gov/">Treasury Fiscal Data</a><span class="host">treasury.gov</span></div>
-        <p>联邦财政收支、债务与国债发行明细</p>
+        <div class="head"><a href="https://fiscaldata.treasury.gov/"><span class="en">Treasury Fiscal Data</span><span class="zh">财政部财政数据</span></a><span class="host">treasury.gov</span></div>
+        <p><span class="en">Federal receipts, outlays, debt, and Treasury auction details.</span><span class="zh">联邦财政收支、债务与国债发行明细</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://home.treasury.gov/policy-issues/international">Treasury International</a><span class="host">treasury.gov</span></div>
-        <p>汇率政策报告与国际经济事务文件</p>
+        <div class="head"><a href="https://home.treasury.gov/policy-issues/international"><span class="en">Treasury International</span><span class="zh">财政部国际事务</span></a><span class="host">treasury.gov</span></div>
+        <p><span class="en">Exchange rate policy reports and international economic affairs documents.</span><span class="zh">汇率政策报告与国际经济事务文件</span></p>
       </li>
     </ul>
   </section>
 
   <section class="group">
-    <h2><span class="idx">04</span>市场与监管</h2>
+    <h2><span class="idx">04</span><span class="en">Markets and Regulation</span><span class="zh">市场与监管</span></h2>
     <ul class="items">
       <li>
         <div class="head"><a href="https://www.sec.gov/edgar">SEC EDGAR</a><span class="host">sec.gov</span></div>
-        <p>上市公司与基金的申报文件全文</p>
+        <p><span class="en">Full-text filings from listed companies and funds.</span><span class="zh">上市公司与基金的申报文件全文</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://www.cboe.com/">CBOE</a><span class="host">cboe.com</span></div>
-        <p>波动率指数、期权与衍生品市场数据</p>
+        <div class="head"><a href="https://www.cboe.com/"><span class="en">CBOE</span><span class="zh">芝加哥期权交易所</span></a><span class="host">cboe.com</span></div>
+        <p><span class="en">Volatility indices, options, and derivatives market data.</span><span class="zh">波动率指数、期权与衍生品市场数据</span></p>
       </li>
       <li>
-        <div class="head"><a href="https://www.finra.org/">FINRA</a><span class="host">finra.org</span></div>
-        <p>场外交易量与做市统计</p>
+        <div class="head"><a href="https://www.finra.org/"><span class="en">FINRA</span><span class="zh">美国金融业监管局</span></a><span class="host">finra.org</span></div>
+        <p><span class="en">Over-the-counter trading volume and market-making statistics.</span><span class="zh">场外交易量与做市统计</span></p>
       </li>
     </ul>
   </section>
 
   <section class="group">
-    <h2><span class="idx">05</span>文献与工作论文</h2>
+    <h2><span class="idx">05</span><span class="en">Literature and Working Papers</span><span class="zh">文献与工作论文</span></h2>
     <ul class="items">
       <li>
-        <div class="head"><a href="https://www.nber.org/">NBER</a><span class="host">nber.org</span></div>
-        <p>工作论文系列与美国商业周期日期判定</p>
+        <div class="head"><a href="https://www.nber.org/"><span class="en">NBER</span><span class="zh">美国全国经济研究所</span></a><span class="host">nber.org</span></div>
+        <p><span class="en">Working paper series and U.S. business cycle dating.</span><span class="zh">工作论文系列与美国商业周期日期判定</span></p>
       </li>
       <li>
         <div class="head"><a href="https://ideas.repec.org/">IDEAS / RePEc</a><span class="host">ideas.repec.org</span></div>
-        <p>经济学文献索引与引用统计</p>
+        <p><span class="en">Economics literature index and citation statistics.</span><span class="zh">经济学文献索引与引用统计</span></p>
       </li>
       <li>
         <div class="head"><a href="https://www.ssrn.com/">SSRN</a><span class="host">ssrn.com</span></div>
-        <p>金融与经济学预印本平台</p>
+        <p><span class="en">Preprint platform for finance and economics.</span><span class="zh">金融与经济学预印本平台</span></p>
       </li>
     </ul>
   </section>
@@ -137,9 +164,23 @@
 
 <footer>
   <div class="wrap">
-    <p>以上均为公开可访问的第三方来源 · 最后整理于 2026 年 10 月</p>
+    <p><span class="en">All sources are publicly accessible third-party sites. Last compiled October 2026.</span><span class="zh">以上均为公开可访问的第三方来源 · 最后整理于 2026 年 10 月</span></p>
   </div>
 </footer>
+
+<script>
+(function () {
+  var buttons = document.querySelectorAll("[data-lang]");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var lang = this.getAttribute("data-lang");
+      window.setSiteLang(lang);
+      localStorage.setItem("fomcdata-lang", lang);
+    });
+  }
+  window.setSiteLang(localStorage.getItem("fomcdata-lang"));
+})();
+</script>
 
 </body>
 </html>
