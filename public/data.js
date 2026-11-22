@@ -127,7 +127,8 @@
     if (q.get("sc") === "linear") out.scale = "linear";
     if (q.get("m") && ["level", "pct", "norm", "diff"].indexOf(q.get("m")) >= 0) out.mode = q.get("m");
     if (q.get("ov")) out.overlays = q.get("ov").split(",").filter(Boolean);
-    if (q.get("at")) out.at = q.get("at");
+    var at = q.get("at");
+    if (at && /^\d{4}-\d{2}-\d{2}$/.test(at) && isFinite(day(at))) out.at = at;
     return out;
   }
 
