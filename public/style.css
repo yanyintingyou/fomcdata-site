@@ -429,10 +429,6 @@ footer a:hover {
 
   .tile { grid-column: span 3; }
 
-  .tile:nth-child(5),
-  .tile:nth-child(6),
-  .tile:nth-child(7) { grid-column: span 4; }
-
   .tile { padding: 15px 14px 11px; }
 
   footer { grid-area: foot; }
@@ -880,3 +876,39 @@ table.data td:first-child { color: var(--ink); }
   color: var(--accent);
   margin-right: 8px;
 }
+
+/* ---------- series picker ---------- */
+
+.control-series { align-items: flex-start; }
+
+.chip-search {
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--hair);
+  padding: 4px 9px;
+  width: 150px;
+}
+
+.chip-search:focus { outline: 1px solid var(--accent); outline-offset: 1px; }
+
+.chips { flex-direction: column; align-items: flex-start; gap: 4px; }
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.chip-cat {
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  min-width: 78px;
+}
+
+#recent { margin-top: 20px; }
+#recent table.data { max-width: 420px; }

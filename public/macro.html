@@ -34,7 +34,7 @@
 
   <div class="page-head">
     <h1><span class="en">Macro and markets</span><span class="zh">宏观与市场</span></h1>
-    <p class="lede"><span class="en">Seven series in five groups. Open any card in the dashboard to change the window, compare, or export.</span><span class="zh">五个分组共七个序列。点开任一卡片进入图表，可改区间、做对比或导出。</span></p>
+    <p class="lede"><span class="en">Thirty-five series in five groups. Open any card in the dashboard to change the window, compare, or export.</span><span class="zh">五个分组共三十五个序列。点开任一卡片进入图表，可改区间、做对比或导出。</span></p>
     <p class="meta-line" id="meta"></p>
   </div>
 
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function draw(data) {
     Object.keys(data.series).forEach(function (k) {
       var it = data.series[k];
-      if (it.hidden) return;
+      if (!it.points) return;
       var box = document.getElementById("cat-" + it.category);
       if (!box) return;
       var a = document.createElement("a");
@@ -112,11 +112,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   FD.load().then(function (data) {
-    draw(data);
-    FD.onLang = function () {
-      document.querySelectorAll(".cards").forEach(function (c) { c.innerHTML = ""; });
+    FD.ensure(Object.keys(data.series)).then(function () {
       draw(data);
-    };
+      FD.onLang = function () {
+        document.querySelectorAll(".cards").forEach(function (c) { c.innerHTML = ""; });
+        draw(data);
+      };
+    });
   }).catch(function () {});
 });
 </script>

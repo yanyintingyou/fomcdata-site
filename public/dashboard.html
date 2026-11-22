@@ -40,8 +40,9 @@
   </div>
 
   <div class="panel">
-    <div class="control">
+    <div class="control control-series">
       <span class="ctl-label"><span class="en">Series</span><span class="zh">指标</span></span>
+      <input class="chip-search" id="search" type="search" placeholder="Search" aria-label="Search series">
       <div class="chips" id="chips"></div>
     </div>
     <div class="control">
@@ -82,6 +83,7 @@
   <div class="plot" id="plot" tabindex="0" aria-label="Chart"></div>
   <div class="legend" id="legend"></div>
   <dl class="stats" id="stats"></dl>
+  <div class="table-wrap" id="recent"></div>
 
   <div class="actions">
     <button class="btn" type="button" id="csv"><span class="en">CSV</span><span class="zh">CSV</span></button>
@@ -104,20 +106,29 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   var state = FD.readState({ keys: ["effr"], range: "1y", scale: "linear", mode: "level", overlays: ["re"] });
-  var data = null, events = [], plot = document.getElementById("plot");
+  var data = null, events = [], query = "";
+  var plot = document.getElementById("plot");
+  var CATS = ["rates", "inflation", "labor", "markets", "commodities"];
+  var LABEL = {
+    rates: ["Policy rates", "政策利率"],
+    inflation: ["Inflation", "通胀"],
+    labor: ["Employment", "就业"],
+    markets: ["Markets", "市场"],
+    commodities: ["Commodities", "商品"]
+  };
 
   function selectedMonthly() {
     return state.keys.some(function (k) { return data.series[k] && data.series[k].frequency === "monthly"; });
   }
 
+  function allPercent() {
+    return state.keys.every(function (k) { return data.series[k] && data.series[k].unit === "%"; });
+  }
+
   function normalizeState() {
-    if (state.keys.length > 1) {
-      state.mode = "norm";
-    } else if (state.mode === "vol" && selectedMonthly()) {
-      state.mode = "level";
-    } else if (state.mode === "norm") {
-      state.mode = "level";
-    }
+    if (state.keys.length > 1) state.mode = allPercent() ? "diff" : "norm";
+    else if (state.mode === "vol" && selectedMonthly()) state.mode = "level";
+    else if (state.mode === "norm") state.mode = "level";
   }
 
   function syncButtons() {
@@ -132,8 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     document.querySelectorAll("#mode button").forEach(function (b) {
       var m = b.dataset.mode;
-      var disabled = state.keys.length > 1 || (m === "vol" && selectedMonthly());
-      b.disabled = disabled;
+      b.disabled = state.keys.length > 1 || (m === "vol" && selectedMonthly());
       b.setAttribute("aria-pressed", state.mode === m ? "true" : "false");
     });
     document.querySelectorAll("#overlays button").forEach(function (b) {
@@ -144,19 +154,38 @@ document.addEventListener("DOMContentLoaded", function () {
   function renderChips() {
     var box = document.getElementById("chips");
     box.innerHTML = "";
+    var q = query.trim().toLowerCase();
+    var groups = {};
+    CATS.forEach(function (c) { groups[c] = []; });
     Object.keys(data.series).forEach(function (k) {
-      var item = data.series[k];
-      if (item.hidden) return;
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "chip";
-      b.dataset.key = k;
-      b.textContent = FD.t(item.tile_en, item.tile_zh);
-      box.appendChild(b);
+      var it = data.series[k];
+      if (it.hidden) return;
+      var hay = (it.label_en + " " + it.label_zh + " " + it.tile_en + " " + it.tile_zh + " " + it.source).toLowerCase();
+      if (q && hay.indexOf(q) < 0) return;
+      (groups[it.category] || groups.rates).push(k);
+    });
+    CATS.forEach(function (cat) {
+      if (!groups[cat].length) return;
+      var wrap = document.createElement("div");
+      wrap.className = "chip-group";
+      var lab = document.createElement("span");
+      lab.className = "chip-cat";
+      lab.textContent = FD.t(LABEL[cat][0], LABEL[cat][1]);
+      wrap.appendChild(lab);
+      groups[cat].forEach(function (k) {
+        var it = data.series[k];
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        b.dataset.key = k;
+        b.textContent = FD.t(it.tile_en, it.tile_zh);
+        wrap.appendChild(b);
+      });
+      box.appendChild(wrap);
     });
   }
 
-  function draw() {
+  function render() {
     normalizeState();
     FD.writeState(state);
     syncButtons();
@@ -164,7 +193,6 @@ document.addEventListener("DOMContentLoaded", function () {
       var it = data.series[k];
       return FD.t(it.label_en, it.label_zh);
     });
-    var sub = FD.t("Source: FRED, Yahoo Finance", "来源：FRED、Yahoo Finance");
     FDChart.render(plot, {
       data: data,
       keys: state.keys,
@@ -177,18 +205,18 @@ document.addEventListener("DOMContentLoaded", function () {
       height: 360,
       ariaLabel: names.join(", "),
       title: names.join(" · ") + " · " + state.range.toUpperCase(),
-      subtitle: sub,
+      subtitle: FD.t("Source: ", "来源：") + state.keys.map(function (k) { return data.series[k].source; }).join(", "),
       onEvent: function (ev) { state.at = state.at === ev.date ? null : ev.date; draw(); }
     });
 
-    var legend = document.getElementById("legend");
-    legend.innerHTML = state.keys.map(function (k, i) {
+    var colors = ["#8a3d28", "#2f5d62", "#8a6d1f", "#2b4d7d"];
+    document.getElementById("legend").innerHTML = state.keys.map(function (k, i) {
       var it = data.series[k];
-      var color = ["#8a3d28", "#2f5d62", "#8a6d1f", "#2b4d7d"][i];
-      return '<span style="color:' + color + '"><i></i>' + FD.t(it.label_en, it.label_zh) + "</span>";
+      return '<span style="color:' + colors[i] + '"><i></i>' + FD.t(it.label_en, it.label_zh) + "</span>";
     }).join("") + (state.at ? '<span style="color:var(--dim)">' + FD.t("centered on ", "以 ") + state.at + FD.t("", " 为中心") + "</span>" : "");
 
     renderStats();
+    renderTable();
     document.getElementById("meta").textContent = data.updated
       ? (FD.t("Last run ", "最近一次运行 ") + data.updated.slice(0, 16).replace("T", " ") + " UTC")
       : "";
@@ -197,6 +225,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (stale.length) {
       note.textContent = FD.t("Refresh failed for: ", "抓取未完成的指标：") +
         stale.map(function (k) { return data.series[k].tile_en; }).join(", ") + ".";
+    } else if (state.keys.length > 1 && state.mode === "diff") {
+      note.textContent = FD.t("Change from the window start, in percentage points. Hover for levels.",
+        "相对窗口起点的变化，单位为百分点。悬停可读水平值。");
     } else if (state.keys.length > 1) {
       note.textContent = FD.t("Normalized to 100 at the start of the window. Hover for raw values.",
         "以窗口起点为 100 归一化。悬停可读原始值。");
@@ -206,6 +237,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function draw() {
+    FD.ensure(state.keys).then(render);
+  }
+
   function renderStats() {
     var box = document.getElementById("stats");
     box.innerHTML = "";
@@ -213,18 +248,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (state.keys.length === 1) {
       var it = data.series[state.keys[0]];
       var pts = FD.windowPoints(it, state.range, state.at);
-      var s = FD.stats(pts);
-      if (!s) { box.innerHTML = ""; return; }
-      cells.push([FD.t("High", "最高"), FD.fmt(s.high, it.decimals) + (it.unit || "")]);
-      cells.push([FD.t("Low", "最低"), FD.fmt(s.low, it.decimals) + (it.unit || "")]);
-      cells.push([FD.t("Mean", "均值"), FD.fmt(s.mean, it.decimals) + (it.unit || "")]);
+      var st = FD.stats(pts);
+      if (!st) return;
+      cells.push([FD.t("High", "最高"), FD.fmt(st.high, it.decimals) + (it.unit || "")]);
+      cells.push([FD.t("Low", "最低"), FD.fmt(st.low, it.decimals) + (it.unit || "")]);
+      cells.push([FD.t("Mean", "均值"), FD.fmt(st.mean, it.decimals) + (it.unit || "")]);
       if (it.unit === "%") {
         var pp = pts[pts.length - 1][1] - pts[0][1];
         cells.push([FD.t("Change", "区间变化"), (pp >= 0 ? "+" : "") + FD.fmt(pp, 2) + " pp"]);
-      } else {
-        cells.push([FD.t("Change", "区间涨跌"), (s.change >= 0 ? "+" : "") + FD.fmt(s.change, 2) + "%"]);
-      }
-      if (it.unit === "%") {
         var peak = pts[0][1], worst = 0;
         pts.forEach(function (p) {
           if (p[1] > peak) peak = p[1];
@@ -232,15 +263,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(worst, 2) + " pp"]);
       } else {
-        cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(s.drawdown, 2) + "%"]);
+        cells.push([FD.t("Change", "区间涨跌"), (st.change >= 0 ? "+" : "") + FD.fmt(st.change, 2) + "%"]);
+        cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(st.drawdown, 2) + "%"]);
       }
-      cells.push([FD.t("Points", "点数"), String(s.n)]);
+      cells.push([FD.t("Points", "点数"), String(st.n)]);
     } else {
       state.keys.forEach(function (k) {
         var it = data.series[k];
-        var s = FD.stats(FD.windowPoints(it, state.range, state.at));
-        if (!s) return;
-        cells.push([FD.t(it.tile_en, it.tile_zh), (s.change >= 0 ? "+" : "") + FD.fmt(s.change, 2) + "%"]);
+        var pts = FD.windowPoints(it, state.range, state.at);
+        var st = FD.stats(pts);
+        if (!st) return;
+        var val = it.unit === "%" ? pts[pts.length - 1][1] - pts[0][1] : st.change;
+        cells.push([FD.t(it.tile_en, it.tile_zh), (val >= 0 ? "+" : "") + FD.fmt(val, 2) + (it.unit === "%" ? " pp" : "%")]);
       });
     }
     cells.forEach(function (c) {
@@ -249,6 +283,18 @@ document.addEventListener("DOMContentLoaded", function () {
       wrap.innerHTML = "<dt>" + c[0] + "</dt><dd>" + c[1] + "</dd>";
       box.appendChild(wrap);
     });
+  }
+
+  function renderTable() {
+    var box = document.getElementById("recent");
+    if (state.keys.length !== 1) { box.innerHTML = ""; return; }
+    var it = data.series[state.keys[0]];
+    var pts = FD.windowPoints(it, state.range, state.at).slice(-12).reverse();
+    var rows = pts.map(function (p) {
+      return "<tr><td>" + p[0] + "</td><td>" + FD.fmt(p[1], it.decimals) + (it.unit || "") + "</td></tr>";
+    }).join("");
+    box.innerHTML = '<table class="data"><thead><tr><th>' + FD.t("Date", "日期") + "</th><th>" +
+      FD.t(it.tile_en, it.tile_zh) + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
   }
 
   function fileBase() {
@@ -267,6 +313,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     FDChart.download(new Blob([lines.join("\n")], { type: "text/csv" }), fileBase() + ".csv");
   }
+
+  document.getElementById("search").addEventListener("input", function () {
+    query = this.value;
+    renderChips();
+  });
 
   document.getElementById("chips").addEventListener("click", function (e) {
     var b = e.target.closest(".chip");

@@ -10,17 +10,15 @@ Live: <https://fomcdata.dpdns.org>
 
 The index lists 21 sources in five groups: Federal Reserve, international organizations, fiscal and cross-border capital, markets and regulation, literature. Each entry gives the publisher, the domain, and one line on what the source covers.
 
-The snapshot tracks seven series and draws them on one chart with 1Y, 3Y, 5Y, 10Y, 20Y and 30Y ranges. Hovering the chart shows a crosshair and the value at that date.
+The snapshot tracks 35 series in five groups. Rates cover the target range, EFFR, SOFR, 2/10/30-year Treasury yields, spreads, the real yield, breakevens and the Fed balance sheet. Inflation covers CPI, core CPI, PCE, core PCE and the Michigan expectation, all year over year except the survey. Employment covers unemployment, U-6, payrolls, participation, wages, JOLTS and claims. Markets cover the S&P 500, gold, WTI, VIX, the broad dollar index, NFCI and high-yield and investment-grade spreads.
 
-| Series | Source | Frequency | Starts |
+| Group | Series | Source | Starts |
 |---|---|---|---|
-| Effective fed funds rate | FRED `DFF` | daily | 1996 |
-| CPI, year over year | FRED `CPIAUCSL`, computed here | monthly | 1997 |
-| Unemployment rate | FRED `UNRATE` | monthly | 1996 |
-| S&P 500 | Yahoo Finance `^GSPC` | daily | 1996 |
-| Gold futures, front month | Yahoo Finance `GC=F` | daily | 2000 |
-| WTI crude futures, front month | Yahoo Finance `CL=F` | daily | 2000 |
-| VIX | Yahoo Finance `^VIX` | daily | 1996 |
+| Rates | target range, SOFR, Treasury yields, spreads, real yield, breakeven, balance sheet, RRP, IORB | FRED | 1996–2021, depending on the series |
+| Inflation | CPI, core CPI, PCE, core PCE, Michigan expectations | FRED | 1996 |
+| Employment | unemployment, U-6, payrolls, participation, wages, JOLTS, claims | FRED | 1996 |
+| Markets | S&P 500, gold, WTI, VIX | Yahoo Finance | 1996–2000 |
+| Markets | broad dollar index, NFCI, HY and IG spreads | FRED | 1996–2023 |
 
 Six pages share one stylesheet and three scripts: the index, a chart dashboard, macro cards, an FOMC calendar, research, and about. The dashboard compares up to four series, switches range and scale, prints window statistics, and exports CSV, PNG or SVG. Its state lives in the query string, so a view can be linked.
 
@@ -28,7 +26,9 @@ Pages open in English. The `中文` button switches all text, the page title and
 
 ## How the data updates
 
-`scripts/fetch_data.py` runs in GitHub Actions every day at 23:00 UTC, after the US close. Each run pulls the last 400 days for every series and merges that window into the stored history. Points older than 90 days get thinned to one per week, which keeps 30 years of history in a 180 KB file. The script commits the new `public/data/market.json` and deploys the Worker.
+`scripts/fetch_data.py` runs in GitHub Actions every day at 23:17 UTC. FRED requests run in a pool of six; Yahoo runs serially with two attempts. Daily and weekly series pull the last 400 days. Monthly series pull full history, which keeps year-over-year bases and benchmark revisions current. Points older than 90 days are thinned to one per week, and anything older than five years to one per month.
+
+Output is `public/data/meta.json` plus one file per group: `rates.json`, `macro.json`, `markets.json`. Meta carries labels and the latest values; a page fetches a group file only when one of its series is opened. The job commits `public/data` and deploys the Worker, and skips the commit when no point changed.
 
 A push to `main` deploys the current files without fetching. To refresh data by hand, run the `deploy` workflow from the Actions tab.
 
@@ -76,6 +76,6 @@ Site code is MIT, see `LICENSE`. Data in `public/data/` follows its sources, lis
 
 ## Notes
 
-A scheduled run set for 23:00 UTC usually starts within half an hour.
+A scheduled run set for 23:17 UTC usually starts within half an hour.
 
-The index links to third-party sites. Those publishers own their data. The repository has no license file.
+The index links to third-party sites. Those publishers own their data.

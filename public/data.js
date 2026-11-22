@@ -3,15 +3,42 @@
   var FD = (window.FD = window.FD || {});
   var RANGES = { "1y": 365, "3y": 1095, "5y": 1825, "10y": 3650, "20y": 7300, "30y": 10950 };
   var cache = null;
+  var data = null;
+  var groups = {};
 
   function load() {
     if (!cache) {
-      cache = fetch("/data/market.json", { cache: "no-cache" }).then(function (r) {
+      cache = fetch("/data/meta.json", { cache: "no-cache" }).then(function (r) {
         if (!r.ok) throw new Error("http " + r.status);
         return r.json();
+      }).then(function (json) {
+        data = json;
+        return json;
       });
     }
     return cache;
+  }
+
+  function loadGroup(name) {
+    if (!groups[name]) {
+      groups[name] = fetch("/data/" + name + ".json", { cache: "no-cache" })
+        .then(function (r) { return r.ok ? r.json() : { series: {} }; })
+        .then(function (json) {
+          Object.keys(json.series).forEach(function (key) {
+            if (data && data.series[key]) data.series[key].points = json.series[key];
+          });
+        });
+    }
+    return groups[name];
+  }
+
+  function ensure(keys) {
+    var need = {};
+    keys.forEach(function (key) {
+      var item = data && data.series[key];
+      if (item && !item.points) need[item.group] = 1;
+    });
+    return Promise.all(Object.keys(need).map(loadGroup)).then(function () { return data; });
   }
 
   function day(iso) {
@@ -95,6 +122,7 @@
   }
 
   FD.load = load;
+  FD.ensure = ensure;
   FD.windowPoints = windowPoints;
   FD.fmt = fmt;
   FD.deltaText = deltaText;

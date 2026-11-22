@@ -29,7 +29,7 @@
   }
 
   function buildSets(data, opt) {
-    var mode = opt.keys.length > 1 ? "norm" : opt.mode || "level";
+    var mode = opt.keys.length > 1 ? (opt.mode === "diff" ? "diff" : "norm") : opt.mode || "level";
     return opt.keys.map(function (key, i) {
       var item = data.series[key];
       var pts = FD.windowPoints(item, opt.range, opt.at);
@@ -38,6 +38,7 @@
       var out;
       if (mode === "norm") out = vals.map(function (v) { return base ? (v / base) * 100 : null; });
       else if (mode === "pct") out = vals.map(function (v) { return base ? (v / base - 1) * 100 : null; });
+      else if (mode === "diff") out = vals.map(function (v) { return base == null ? null : v - base; });
       else if (mode === "vol") out = rollingVol(vals, item.frequency);
       else out = vals.slice();
       return { key: key, item: item, pts: pts, vals: vals, out: out, color: COLORS[i], mode: mode };
@@ -159,7 +160,7 @@
         pen = true;
       });
       d = d.trim();
-      if (sets.length === 1 && s.mode === "level") {
+      if (sets.length === 1 && s.mode === "level" && !s.item.unit) {
         var firstX = null, lastX = null;
         s.pts.forEach(function (p, i) {
           if (s.out[i] == null) return;

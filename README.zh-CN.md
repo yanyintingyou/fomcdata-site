@@ -10,17 +10,15 @@
 
 索引分五组共 21 个来源：美联储、国际组织、财政与跨境资本、市场与监管、文献。每条给出发布机构、域名，以及一句话说明这个来源收什么数据。
 
-快照跟踪七个序列，画在同一张图上，区间可选 1Y、3Y、5Y、10Y、20Y、30Y。鼠标移到图上会出现十字准线和当天的数值。
+快照跟踪五个分组共 35 个序列。利率组包括目标区间、EFFR、SOFR、2/10/30 年美债收益率、利差、实际利率、通胀预期、美联储资产负债表、逆回购与 IORB。通胀组包括 CPI、核心 CPI、PCE、核心 PCE 与密歇根预期。就业组包括失业率、U6、非农、参与率、时薪、职位空缺与初请。市场组包括标普 500、黄金、WTI、VIX、广义美元指数、NFCI 与高收益、投资级利差。
 
-| 序列 | 来源 | 频率 | 起点 |
+| 分组 | 序列 | 来源 | 起点 |
 |---|---|---|---|
-| 联邦基金有效利率 | FRED `DFF` | 日 | 1996 |
-| CPI 同比 | FRED `CPIAUCSL`，本站计算 | 月 | 1997 |
-| 失业率 | FRED `UNRATE` | 月 | 1996 |
-| 标普 500 | Yahoo Finance `^GSPC` | 日 | 1996 |
-| 黄金期货主力合约 | Yahoo Finance `GC=F` | 日 | 2000 |
-| WTI 原油期货主力合约 | Yahoo Finance `CL=F` | 日 | 2000 |
-| VIX | Yahoo Finance `^VIX` | 日 | 1996 |
+| 利率 | 目标区间、SOFR、美债收益率、利差、实际利率、通胀预期、资产负债表、逆回购、IORB | FRED | 1996–2021，视序列而定 |
+| 通胀 | CPI、核心 CPI、PCE、核心 PCE、密歇根预期 | FRED | 1996 |
+| 就业 | 失业率、U6、非农、参与率、时薪、职位空缺、初请 | FRED | 1996 |
+| 市场 | 标普 500、黄金、WTI、VIX | Yahoo Finance | 1996–2000 |
+| 市场 | 广义美元指数、NFCI、高收益与投资级利差 | FRED | 1996–2023 |
 
 六个页面共用一份样式和三个脚本：索引、图表工作台、宏观卡片、FOMC 日历、研究、关于。图表工作台支持最多四个指标对比、区间与坐标切换、窗口统计，以及 CSV、PNG、SVG 导出。视图状态写在查询串里，可以直接分享。
 
@@ -28,7 +26,9 @@
 
 ## 数据怎么更新
 
-`scripts/fetch_data.py` 在 GitHub Actions 里每天 23:00 UTC 跑一次，时点在美股收盘之后。每次只抓最近 400 天，再合并进已经存下的历史。90 天以前的部分按周采样，30 年历史压在一个 180 KB 的文件里。脚本提交新的 `public/data/market.json`，随后部署 Worker。
+`scripts/fetch_data.py` 在 GitHub Actions 里每天 23:17 UTC 跑一次。FRED 请求走六个线程，Yahoo 串行、两次重试。日频与周频序列抓最近 400 天，月频序列抓全量，保证同比基数与年度修订。90 天以前按周采样，5 年以前按月采样。
+
+输出为 `public/data/meta.json` 加三个分组文件：`rates.json`、`macro.json`、`markets.json`。清单保存标签与最新值，页面只在打开某个指标时才取对应分组。任务提交 `public/data` 并部署 Worker，点位没有变化时跳过提交。
 
 推送到 main 只部署当前文件，不抓数据。要手动刷新数据，在 Actions 页面运行 `deploy` 工作流。
 
@@ -46,7 +46,7 @@ public/style.css       设计令牌与组件
 public/site.js         语言切换与页面元信息
 public/data.js         取数、窗口、统计、URL 状态
 public/chart.js        SVG 绘图、十字准线、导出
-public/data/           market.json、calendar.json
+public/data/           meta、rates、macro、markets、calendar
 scripts/fetch_data.py  抓取、合并、降采样、标记失败序列
 .github/workflows/     每日刷新与部署
 wrangler.toml          Worker 名称与资源目录
@@ -75,6 +75,6 @@ GitHub Actions 用 `cloudflare/wrangler-action` 部署，读取两个仓库密�
 
 ## 说明
 
-定时任务通常在 23:00 UTC 之后半小时内启动。
+定时任务通常在 23:17 UTC 之后半小时内启动。
 
 索引里的链接指向第三方站点，数据归各发布方所有。本仓库没有许可证文件。

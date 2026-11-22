@@ -205,9 +205,9 @@ document.addEventListener("DOMContentLoaded", function () {
   var data = null, current = "effr", range = "1y";
   var plot = document.getElementById("home-plot");
 
-  function draw() {
-    if (!data || !data.series[current]) return;
+  function render() {
     var item = data.series[current];
+    if (!item || !item.points) return;
     var zh = document.documentElement.lang === "zh-CN";
     FDChart.render(plot, {
       data: data,
@@ -219,11 +219,11 @@ document.addEventListener("DOMContentLoaded", function () {
       height: 250,
       ariaLabel: FD.t(item.label_en, item.label_zh),
       title: FD.t(item.label_en, item.label_zh) + " · " + range.toUpperCase(),
-      subtitle: FD.t("Source: FRED, Yahoo Finance", "来源：FRED、Yahoo Finance") + " · " + item.asof
+      subtitle: FD.t("Source: ", "来源：") + item.source + " · " + item.asof
     });
     document.getElementById("chart-label").textContent =
       (zh ? item.label_zh : item.label_en) + " · " + FD.fmt(item.last, item.decimals) +
-      (item.unit || "") + " · " + item.asof;
+      (item.unit ? item.unit : "") + " · " + item.asof;
     var stale = document.getElementById("stale-note");
     stale.hidden = !item.stale;
     stale.textContent = item.stale
@@ -240,23 +240,30 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function draw() {
+    FD.ensure([current]).then(render);
+  }
+
   function tiles() {
     var box = document.getElementById("tiles");
     box.innerHTML = "";
     Object.keys(data.series).forEach(function (key) {
       var item = data.series[key];
-      if (item.hidden) return;
+      if (!item.featured) return;
       var b = document.createElement("button");
       b.type = "button";
       b.className = "tile";
       b.dataset.key = key;
-      var last30 = item.points.slice(-30).map(function (p) { return p[1]; });
-      var min = Math.min.apply(null, last30), max = Math.max.apply(null, last30);
-      var span = max - min || 1;
-      var d = last30.map(function (v, i) {
-        return (i ? "L" : "M") + (i * 100 / (last30.length - 1)).toFixed(1) + " " +
-          (26 - ((v - min) / span) * 22).toFixed(1);
-      }).join(" ");
+      var last30 = (item.points || []).slice(-30).map(function (p) { return p[1]; });
+      var d = "";
+      if (last30.length > 1) {
+        var min = Math.min.apply(null, last30), max = Math.max.apply(null, last30);
+        var span = max - min || 1;
+        d = last30.map(function (v, i) {
+          return (i ? "L" : "M") + (i * 100 / (last30.length - 1)).toFixed(1) + " " +
+            (26 - ((v - min) / span) * 22).toFixed(1);
+        }).join(" ");
+      }
       var flag = item.stale
         ? '<span class="flag" role="img" aria-label="' + FD.t("Latest refresh failed", "最近一次抓取未完成") + '"></span>'
         : "";
@@ -289,10 +296,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   FD.load().then(function (d) {
     data = d;
-    if (!data.series[current]) current = Object.keys(data.series).find(function (k) { return !data.series[k].hidden; });
+    var featured = Object.keys(data.series).filter(function (k) { return data.series[k].featured; });
+    if (!data.series[current]) current = featured[0] || Object.keys(data.series)[0];
     document.getElementById("snapshot").hidden = false;
-    tiles();
-    draw();
+    FD.ensure(featured).then(function () {
+      tiles();
+      draw();
+    });
   }).catch(function () {});
 });
 </script>
