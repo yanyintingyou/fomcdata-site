@@ -855,7 +855,7 @@ footer a:hover {
   grid-template-columns: 96px minmax(0, 1fr) auto;
   gap: 14px;
   align-items: baseline;
-  padding: 9px 0;
+  padding: 7px 0;
   border-top: 1px solid var(--hair);
 }
 
@@ -884,32 +884,36 @@ footer a:hover {
 }
 
 .cal-out {
-  font-size: 10px;
-  color: var(--dim);
+  font-size: 11px;
+  color: var(--accent);
   margin-left: 6px;
   vertical-align: 2px;
 }
 
 .cal-side {
   display: flex;
-  gap: 16px;
-  align-items: baseline;
+  gap: 18px;
+  align-items: center;
   justify-content: flex-end;
 }
 
-.cal-links { display: flex; gap: 12px; }
+.cal-links { display: flex; gap: 7px; }
 
 .cal-links a {
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  display: inline-block;
+  padding: 3px 9px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--ink);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
+  border: 1px solid #d9d3c6;
   white-space: nowrap;
+  transition: color 0.16s ease, border-color 0.16s ease;
 }
 
-.cal-links a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.cal-links a:hover { color: var(--accent); border-color: var(--accent); }
 
 .cal-tag {
   font-size: 10px;
