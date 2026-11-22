@@ -78,7 +78,14 @@
         <button type="button" data-ov="ev"><span class="en">FOMC</span><span class="zh">FOMC</span></button>
       </div>
     </div>
+    <div class="control">
+      <span class="ctl-label"><span class="en">Center on</span><span class="zh">定位日期</span></span>
+      <input class="date-input" id="at" type="date" aria-label="Center the window on a date">
+      <button type="button" class="chip" id="at-clear"><span class="en">Clear</span><span class="zh">清除</span></button>
+    </div>
   </div>
+
+  <p class="chart-note" id="at-note" hidden></p>
 
   <div class="plot" id="plot" tabindex="0" aria-label="Chart"></div>
   <div class="legend" id="legend"></div>
@@ -108,6 +115,8 @@ document.addEventListener("DOMContentLoaded", function () {
   var state = FD.readState({ keys: ["effr"], range: "1y", scale: "linear", mode: "level", overlays: ["re"] });
   var data = null, events = [], query = "";
   var plot = document.getElementById("plot");
+  var atInput = document.getElementById("at");
+  var atNote = document.getElementById("at-note");
   var CATS = ["rates", "inflation", "labor", "markets", "commodities"];
   var LABEL = {
     rates: ["Policy rates", "政策利率"],
@@ -185,9 +194,44 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function syncAt() {
+    var it = data.series[state.keys[0]];
+    if (it && it.points && it.points.length) {
+      atInput.min = it.points[0][0];
+      atInput.max = it.points[it.points.length - 1][0];
+    }
+    if (document.activeElement !== atInput) atInput.value = state.at || "";
+  }
+
+  function applyAt(value) {
+    if (!value) {
+      state.at = null;
+      atNote.hidden = true;
+      atNote.textContent = "";
+      draw();
+      return;
+    }
+    FD.ensure([state.keys[0]]).then(function () {
+      var it = data.series[state.keys[0]];
+      var snapped = it && it.points ? FD.nearest(it, value, 3) : value;
+      state.at = snapped;
+      if (snapped === value) {
+        atNote.hidden = true;
+        atNote.textContent = "";
+      } else {
+        atNote.hidden = false;
+        atNote.textContent = FD.t(
+          "No observation on " + value + ". Window centered on " + snapped + ".",
+          value + " 没有观测值，窗口已定位到最近的 " + snapped + "。");
+      }
+      draw();
+    });
+  }
+
   function render() {
     normalizeState();
     FD.writeState(state);
+    syncAt();
     syncButtons();
     var names = state.keys.map(function (k) {
       var it = data.series[k];
@@ -314,6 +358,9 @@ document.addEventListener("DOMContentLoaded", function () {
     FDChart.download(new Blob([lines.join("\n")], { type: "text/csv" }), fileBase() + ".csv");
   }
 
+  atInput.addEventListener("change", function () { applyAt(this.value); });
+  document.getElementById("at-clear").addEventListener("click", function () { applyAt(""); });
+
   document.getElementById("search").addEventListener("input", function () {
     query = this.value;
     renderChips();
@@ -376,7 +423,8 @@ document.addEventListener("DOMContentLoaded", function () {
     state.keys = state.keys.filter(function (k) { return data.series[k]; });
     if (!state.keys.length) state.keys = ["effr"];
     renderChips();
-    draw();
+    if (state.at) applyAt(state.at);
+    else draw();
   }).catch(function () {
     plot.innerHTML = '<p class="chart-note">Data unavailable.</p>';
   });

@@ -97,18 +97,23 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 
-  function links(ev) {
+  function chartHref(ev) {
+    return "/dashboard?s=effr&r=1y&at=" + ev.date + "&ov=ev";
+  }
+
+  function links(ev, past) {
     var out = [];
     if (ev.type === "fomc") {
       if (ev.links.press) out.push([ev.links.press, FD.t("Press conf.", "发布会")]);
       if (ev.links.projections) out.push([ev.links.projections, FD.t("Projections", "预测")]);
-      out.push(["/dashboard?s=effr&r=1y&at=" + ev.date + "&ov=ev", FD.t("Chart", "图表")]);
+      if (past) out.push([chartHref(ev), FD.t("Chart", "图表")]);
     }
     return out;
   }
 
   function row(ev, today) {
     var days = Math.round((Date.parse(ev.date + "T00:00:00Z") - Date.parse(today + "T00:00:00Z")) / 86400000);
+    var past = ev.date <= today;
     var lab = labels(ev);
     var target = ev.type === "fomc" ? ev.links.statement : ev.url;
 
@@ -119,12 +124,14 @@ document.addEventListener("DOMContentLoaded", function () {
     when.className = "cal-date";
     when.textContent = ev.date;
 
-    var main = document.createElement("a");
+    var main = document.createElement(target || past ? "a" : "span");
     main.className = "cal-main";
-    main.href = target || ("/dashboard?s=effr&r=1y&at=" + ev.date + "&ov=ev");
-    if (target) {
-      main.target = "_blank";
-      main.rel = "noopener";
+    if (target || past) {
+      main.href = target || chartHref(ev);
+      if (target) {
+        main.target = "_blank";
+        main.rel = "noopener";
+      }
     }
     main.innerHTML = '<span class="cal-title">' + lab.title +
       (lab.sub ? '<span class="cal-sub">' + lab.sub + "</span>" : "") +
@@ -133,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var side = document.createElement("span");
     side.className = "cal-side";
     var tag = days === 0 ? FD.t("today", "今天") : days > 0 ? FD.t("in " + days + " days", days + " 天后") : "";
-    side.innerHTML = '<span class="cal-links">' + links(ev).map(function (l) {
+    side.innerHTML = '<span class="cal-links">' + links(ev, past).map(function (l) {
       return '<a href="' + l[0] + '"' + (l[0].charAt(0) === "/" ? "" : ' target="_blank" rel="noopener"') + ">" + l[1] + "</a>";
     }).join("") + '</span><span class="cal-tag">' + tag + "</span>";
 

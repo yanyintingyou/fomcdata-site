@@ -121,6 +121,16 @@
         C.dim + '">' + FD.fmt(val, digits) + "</text>");
     }
 
+    var atX = null;
+    if (opt.at) {
+      var tAt = day(opt.at);
+      if (tAt >= t0 && tAt <= t1) atX = L + ((tAt - t0) / (t1 - t0)) * plotW;
+    }
+    if (atX != null) {
+      out.push('<line x1="' + atX.toFixed(1) + '" y1="' + T + '" x2="' + atX.toFixed(1) + '" y2="' + (T + plotH) +
+        '" stroke="' + C.ink + '" stroke-width="1" stroke-opacity="0.38"/>');
+    }
+
     var events = (opt.overlays || []).indexOf("ev") >= 0 ? (opt.events || []) : [];
     var marks = [];
     events.forEach(function (ev) {
@@ -177,6 +187,23 @@
     });
 
     out.push(eventSvg.join(""));
+
+    if (atX != null) {
+      sets.forEach(function (s) {
+        for (var i = 0; i < s.pts.length; i++) {
+          if (s.pts[i][0] !== opt.at) continue;
+          var v = s.out[i];
+          if (v != null && isFinite(v)) {
+            out.push('<circle cx="' + atX.toFixed(1) + '" cy="' + yOf(v).toFixed(1) + '" r="3" fill="' + s.color +
+              '" stroke="' + C.paper + '" stroke-width="1.5"/>');
+          }
+        }
+      });
+      var lx = Math.min(Math.max(atX, L + 26), W - R - 40);
+      out.push('<text x="' + lx.toFixed(1) + '" y="' + (T + 11) + '" font-size="9.5" text-anchor="middle" fill="' +
+        C.ink + '" stroke="' + C.paper + '" stroke-width="3" paint-order="stroke" letter-spacing="0.04em">' +
+        opt.at + "</text>");
+    }
 
     var ticks = W < 560 ? 2 : 3;
     for (var k = 0; k <= ticks; k++) {

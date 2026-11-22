@@ -52,10 +52,31 @@
     var end = at ? day(at) : day(pts[pts.length - 1][0]);
     var lo = at ? end - days * 43200000 : end - days * 86400000;
     var hi = at ? end + days * 43200000 : end + 86400000;
+    if (at) {
+      // keep the window inside the series so a date near an end is not glued to the edge
+      var span = hi - lo;
+      var first = day(pts[0][0]), last = day(pts[pts.length - 1][0]);
+      if (lo < first) { lo = first; hi = lo + span; }
+      if (hi > last) { hi = last; lo = Math.max(first, hi - span); }
+    }
     return pts.filter(function (p) {
       var t = day(p[0]);
       return t >= lo && t <= hi;
     });
+  }
+
+  function nearest(item, iso, maxDays) {
+    var pts = item && item.points;
+    if (!pts || !pts.length) return iso;
+    var t = day(iso);
+    if (!isFinite(t)) return iso;
+    var best = pts[0][0], bestD = Math.abs(day(best) - t);
+    for (var i = 1; i < pts.length; i++) {
+      var d = Math.abs(day(pts[i][0]) - t);
+      if (d < bestD) { bestD = d; best = pts[i][0]; }
+    }
+    if (maxDays && bestD > maxDays * 86400000) return iso;
+    return best;
   }
 
   function fmt(v, d) {
@@ -124,6 +145,7 @@
   FD.load = load;
   FD.ensure = ensure;
   FD.windowPoints = windowPoints;
+  FD.nearest = nearest;
   FD.fmt = fmt;
   FD.deltaText = deltaText;
   FD.stats = stats;

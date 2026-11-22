@@ -20,7 +20,7 @@ The snapshot tracks 35 series in five groups. Rates cover the target range, EFFR
 | Markets | S&P 500, gold, WTI, VIX | Yahoo Finance | 1996–2000 |
 | Markets | broad dollar index, NFCI, HY and IG spreads | FRED | 1996–2023 |
 
-Six pages share one stylesheet and three scripts: the index, a chart dashboard, macro cards, an FOMC calendar, research, and about. The dashboard compares up to four series, switches range and scale, prints window statistics, and exports CSV, PNG or SVG. Its state lives in the query string, so a view can be linked.
+Six pages share one stylesheet and three scripts: the index, a chart dashboard, macro cards, an FOMC calendar, research, and about. The dashboard compares up to four series, switches range and scale, prints window statistics, and exports CSV, PNG or SVG. A date field centers the window on any day, snapping to the nearest observation when the day has none, and marks that day on the chart. Its state lives in the query string, so a view can be linked.
 
 Pages open in English. The `中文` button switches all text, the page title and the chart labels, and stores the choice in `localStorage`.
 
@@ -58,7 +58,7 @@ The Worker serves static assets.
 
 `fetch_calendar.py` reads the Federal Reserve meeting calendar once a day and merges new dates into `calendar.json`. Each meeting carries its statement, press conference and projection pages, the minutes release date, and the minutes link. Beige Book editions come from the publication page for the running year and from the archive year pages for earlier ones, which are fetched once. Older statements resolve to the boarddocs archive or the historical page for that year, and stay stored afterwards. A normal run costs two requests.
 
-The calendar page filters by decisions, minutes or Beige Books, with everything shown by default. Rows open federalreserve.gov; decisions keep a chart link beside them.
+The calendar page filters by decisions, minutes or Beige Books, with everything shown by default. Rows open federalreserve.gov; meetings that already happened keep a chart link beside them.
 
 The calendar page folds years before the current one. Rows open the Federal Reserve statement for that meeting; a chart link beside each row opens the policy rate around that day.
 
