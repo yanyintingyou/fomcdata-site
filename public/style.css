@@ -502,6 +502,8 @@ footer a:hover {
   padding: 64px 30px 40px;
 }
 
+.page-foot { padding-top: 0; }
+
 .page-head { max-width: 44em; }
 
 .page-head h1 {
@@ -665,6 +667,12 @@ footer a:hover {
   display: inline-block;
   vertical-align: 3px;
 }
+
+.c0 { color: #8a3d28; }
+.c1 { color: #2f5d62; }
+.c2 { color: #8a6d1f; }
+.c3 { color: #2b4d7d; }
+.legend .dim { color: var(--dim); }
 
 .chart-note {
   margin: 12px 0 0;

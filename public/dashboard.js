@@ -134,15 +134,14 @@ document.addEventListener("DOMContentLoaded", function () {
       onEvent: function (ev) { state.at = state.at === ev.date ? null : ev.date; draw(); }
     });
 
-    var colors = ["#8a3d28", "#2f5d62", "#8a6d1f", "#2b4d7d"];
     var legend = document.getElementById("legend");
     legend.innerHTML = state.keys.map(function (k, i) {
       var it = data.series[k];
-      return '<span style="color:' + colors[i] + '"><i></i>' + FD.t(it.label_en, it.label_zh) + "</span>";
+      return '<span class="c' + i + '"><i></i>' + FD.t(it.label_en, it.label_zh) + "</span>";
     }).join("");
     if (state.at) {
       var tag = document.createElement("span");
-      tag.style.color = "var(--dim)";
+      tag.className = "dim";
       tag.textContent = FD.t("centered on ", "以 ") + state.at + FD.t("", " 为中心");
       legend.appendChild(tag);
     }

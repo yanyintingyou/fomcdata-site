@@ -239,7 +239,7 @@
         '" stroke="' + C.muted + '" stroke-width="1" stroke-dasharray="3 3"/>'];
       var rows = ["<div><b>" + iso + "</b></div>"];
       var spoken = [iso];
-      sets.forEach(function (s) {
+      sets.forEach(function (s, si) {
         var i = nearestTime(iso, s);
         var v = s.out[i];
         if (v != null) {
@@ -248,7 +248,7 @@
         }
         var name = FD.t(s.item.tile_en, s.item.tile_zh);
         var raw = s.vals[i];
-        rows.push('<div><span style="color:' + s.color + '">■</span> ' + name + " " +
+        rows.push('<div><span class="c' + si + '">■</span> ' + name + " " +
           FD.fmt(raw, s.item.decimals) + (s.item.unit || "") + "</div>");
         spoken.push(name + " " + FD.fmt(raw, s.item.decimals));
       });
@@ -322,8 +322,8 @@
     wrap.setAttribute("viewBox", "0 0 " + g.W + " " + (g.H + extra));
     wrap.setAttribute("font-family", FONT);
     wrap.innerHTML = '<rect width="100%" height="100%" fill="' + C.paper + '"/>' +
-      '<text x="8" y="18" font-size="13" fill="' + C.ink + '">' + title + "</text>" +
-      '<text x="8" y="33" font-size="10" fill="' + C.dim + '">' + sub + "</text>";
+      '<text x="8" y="18" font-size="13" fill="' + C.ink + '">' + esc(title) + "</text>" +
+      '<text x="8" y="33" font-size="10" fill="' + C.dim + '">' + esc(sub) + "</text>";
     clone.removeAttribute("style");
     clone.setAttribute("y", String(extra));
     wrap.appendChild(clone);
