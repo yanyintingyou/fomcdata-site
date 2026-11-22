@@ -112,7 +112,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  var state = FD.readState({ keys: ["effr"], range: "1y", scale: "linear", mode: "level", overlays: ["re"] });
+  var state = FD.readState({ keys: ["dgs10"], range: "1y", scale: "linear", mode: "level", overlays: ["re"] });
   var data = null, events = [], query = "";
   var plot = document.getElementById("plot");
   var atInput = document.getElementById("at");
@@ -421,7 +421,7 @@ document.addEventListener("DOMContentLoaded", function () {
     data = res[0];
     events = (res[1].events || []).filter(function (e) { return e.type === "fomc"; });
     state.keys = state.keys.filter(function (k) { return data.series[k]; });
-    if (!state.keys.length) state.keys = ["effr"];
+    if (!state.keys.length) state.keys = ["dgs10"];
     renderChips();
     if (state.at) applyAt(state.at);
     else draw();
