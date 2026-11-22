@@ -125,7 +125,7 @@
     if (q.get("r") && RANGES[q.get("r")]) out.range = q.get("r");
     if (q.get("sc") === "log") out.scale = "log";
     if (q.get("sc") === "linear") out.scale = "linear";
-    if (q.get("m")) out.mode = q.get("m");
+    if (q.get("m") && ["level", "pct", "norm", "diff"].indexOf(q.get("m")) >= 0) out.mode = q.get("m");
     if (q.get("ov")) out.overlays = q.get("ov").split(",").filter(Boolean);
     if (q.get("at")) out.at = q.get("at");
     return out;

@@ -68,7 +68,6 @@
       <div class="seg" id="mode">
         <button type="button" data-mode="level"><span class="en">Level</span><span class="zh">点位</span></button>
         <button type="button" data-mode="pct"><span class="en">% chg</span><span class="zh">涨跌幅</span></button>
-        <button type="button" data-mode="vol"><span class="en">Vol</span><span class="zh">波动率</span></button>
       </div>
     </div>
     <div class="control">
@@ -126,17 +125,12 @@ document.addEventListener("DOMContentLoaded", function () {
     commodities: ["Commodities", "商品"]
   };
 
-  function selectedMonthly() {
-    return state.keys.some(function (k) { return data.series[k] && data.series[k].frequency === "monthly"; });
-  }
-
   function allPercent() {
     return state.keys.every(function (k) { return data.series[k] && data.series[k].unit === "%"; });
   }
 
   function normalizeState() {
     if (state.keys.length > 1) state.mode = allPercent() ? "diff" : "norm";
-    else if (state.mode === "vol" && selectedMonthly()) state.mode = "level";
     else if (state.mode === "norm") state.mode = "level";
   }
 
@@ -151,9 +145,8 @@ document.addEventListener("DOMContentLoaded", function () {
       b.setAttribute("aria-pressed", b.dataset.scale === state.scale ? "true" : "false");
     });
     document.querySelectorAll("#mode button").forEach(function (b) {
-      var m = b.dataset.mode;
-      b.disabled = state.keys.length > 1 || (m === "vol" && selectedMonthly());
-      b.setAttribute("aria-pressed", state.mode === m ? "true" : "false");
+      b.disabled = state.keys.length > 1;
+      b.setAttribute("aria-pressed", state.mode === b.dataset.mode ? "true" : "false");
     });
     document.querySelectorAll("#overlays button").forEach(function (b) {
       b.setAttribute("aria-pressed", state.overlays.indexOf(b.dataset.ov) >= 0 ? "true" : "false");

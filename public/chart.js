@@ -11,23 +11,6 @@
 
   function day(iso) { return Date.parse(iso + "T00:00:00Z"); }
 
-  function rollingVol(vals, freq) {
-    if (freq !== "daily") return vals.map(function () { return null; });
-    var out = [];
-    for (var i = 0; i < vals.length; i++) {
-      if (i < 20) { out.push(null); continue; }
-      var rets = [];
-      for (var j = i - 19; j <= i; j++) {
-        if (vals[j - 1] > 0 && vals[j] > 0) rets.push(Math.log(vals[j] / vals[j - 1]));
-      }
-      if (rets.length < 10) { out.push(null); continue; }
-      var mean = rets.reduce(function (a, b) { return a + b; }, 0) / rets.length;
-      var varr = rets.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / (rets.length - 1);
-      out.push(Math.sqrt(varr) * Math.sqrt(252) * 100);
-    }
-    return out;
-  }
-
   function buildSets(data, opt) {
     var mode = opt.keys.length > 1 ? (opt.mode === "diff" ? "diff" : "norm") : opt.mode || "level";
     return opt.keys.map(function (key, i) {
@@ -39,7 +22,6 @@
       if (mode === "norm") out = vals.map(function (v) { return base ? (v / base) * 100 : null; });
       else if (mode === "pct") out = vals.map(function (v) { return base ? (v / base - 1) * 100 : null; });
       else if (mode === "diff") out = vals.map(function (v) { return base == null ? null : v - base; });
-      else if (mode === "vol") out = rollingVol(vals, item.frequency);
       else out = vals.slice();
       return { key: key, item: item, pts: pts, vals: vals, out: out, color: COLORS[i], mode: mode };
     }).filter(function (s) { return s.pts.length > 1; });
