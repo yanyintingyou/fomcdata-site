@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendar — FOMC Data</title>
-<meta name="description" content="FOMC meeting dates with links to the policy rate chart around each decision.">
+<meta name="description" content="Every scheduled FOMC meeting since 1996, with a link to the Federal Reserve statement for each decision.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/style.css">
 <script src="/site.js" defer></script>
 <script src="/data.js" defer></script>
 </head>
-<body data-title-en="Calendar — FOMC Data" data-title-zh="日历 — FOMC Data" data-desc-en="FOMC meeting dates with links to the policy rate chart around each decision." data-desc-zh="FOMC 会议日期，可跳转到每次决议前后的利率图表。">
+<body data-title-en="Calendar — FOMC Data" data-title-zh="日历 — FOMC Data" data-desc-en="Every scheduled FOMC meeting since 1996, with a link to the Federal Reserve statement for each decision." data-desc-zh="1996 年以来全部例行 FOMC 会议，每次决议附美联储声明链接。">
 
 <header class="global-head">
   <div class="global-inner">
@@ -34,7 +34,7 @@
 
   <div class="page-head">
     <h1><span class="en">FOMC calendar</span><span class="zh">FOMC 日历</span></h1>
-    <p class="lede"><span class="en">Decision dates for scheduled meetings. Each row opens the policy rate chart centered on that day.</span><span class="zh">例行会议的决定日期。点任一行，打开以该日为中心的利率图表。</span></p>
+    <p class="lede"><span class="en">Decision dates for every scheduled meeting since 1996. Each row opens the Federal Reserve statement for that decision; the chart link opens the policy rate around that day. Past years stay folded.</span><span class="zh">1996 年以来全部例行会议的决定日期。点任一行，打开美联储当次会议的声明；图表链接打开以该日为中心的利率图。往年默认折叠。</span></p>
     <p class="meta-line" id="meta"></p>
   </div>
 
@@ -44,45 +44,78 @@
 
 <footer>
   <div class="page" style="padding-top:0">
-    <p><span class="en">Dates follow the Federal Reserve meeting calendar. A two-day meeting ends on the date shown.</span><span class="zh">日期依据美联储会议日历，两日会议以结束日为准。</span></p>
+    <p><span class="en">A two-day meeting ends on the date shown. Links point to federalreserve.gov; meetings without a published statement yet link to the chart instead.</span><span class="zh">两日会议以结束日为准。链接指向 federalreserve.gov；尚未发布声明的会议改为跳转图表。</span></p>
     <p><a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"><span class="en">Federal Reserve calendar</span><span class="zh">美联储会议日历</span></a></p>
   </div>
 </footer>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  function row(ev, today) {
+    var days = Math.round((Date.parse(ev.date + "T00:00:00Z") - Date.parse(today + "T00:00:00Z")) / 86400000);
+    var chart = "/dashboard?s=effr&r=1y&at=" + ev.date + "&ov=ev";
+    var title = FD.t("FOMC decision", "FOMC 决议") + (ev.sep ? FD.t(" · with projections", " · 含经济预测") : "");
+
+    var wrap = document.createElement("div");
+    wrap.className = "cal-row" + (ev.date < today ? " past" : "") + (days >= 0 && days <= 30 ? " cal-soon" : "");
+
+    var main = document.createElement("a");
+    main.className = "cal-main";
+    if (ev.url) {
+      main.href = ev.url;
+      main.target = "_blank";
+      main.rel = "noopener";
+    } else {
+      main.href = chart;
+    }
+    main.innerHTML = '<span class="cal-date">' + ev.date + "</span>" +
+      '<span class="cal-title">' + title + (ev.url ? '<span class="cal-out">&#8599;</span>' : "") + "</span>";
+
+    var tag = days === 0 ? FD.t("today", "今天") : days > 0 ? FD.t("in " + days + " days", days + " 天后") : "";
+    var side = document.createElement("span");
+    side.className = "cal-side";
+    side.innerHTML = (ev.url ? '<a class="cal-chart" href="' + chart + '">' + FD.t("Chart", "图表") + "</a>" : "") +
+      '<span class="cal-tag">' + tag + "</span>";
+
+    wrap.appendChild(main);
+    wrap.appendChild(side);
+    return wrap;
+  }
+
   function draw(json) {
     var list = document.getElementById("list");
     list.innerHTML = "";
-    var zh = document.documentElement.lang === "zh-CN";
     var today = new Date().toISOString().slice(0, 10);
+    var thisYear = today.slice(0, 4);
     var years = {};
-    var from = (new Date().getFullYear() - 2) + "-01-01";
-    json.events.slice().filter(function (e) { return e.date >= from; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (ev) {
+    (json.events || []).forEach(function (ev) {
       var y = ev.date.slice(0, 4);
       (years[y] = years[y] || []).push(ev);
     });
-    Object.keys(years).forEach(function (y) {
-      var h = document.createElement("h2");
-      h.className = "cal-year";
-      h.textContent = y;
-      list.appendChild(h);
-      years[y].forEach(function (ev) {
-        var days = Math.round((Date.parse(ev.date + "T00:00:00Z") - Date.parse(today + "T00:00:00Z")) / 86400000);
-        var a = document.createElement("a");
-        a.className = "cal-row" + (ev.date < today ? " past" : "") + (days >= 0 && days <= 30 ? " cal-soon" : "");
-        a.href = "/dashboard?s=effr&r=1y&at=" + ev.date + "&ov=ev";
-        var title = FD.t("FOMC decision", "FOMC 决议") + (ev.sep ? FD.t(" · with projections", " · 含经济预测") : "");
-        var tag = days === 0 ? FD.t("today", "今天") : days > 0 ? FD.t("in " + days + " days", days + " 天后") : "";
-        a.innerHTML = '<span class="cal-date">' + ev.date + '</span><span class="cal-title">' + title +
-          '</span><span class="cal-tag">' + tag + "</span>";
-        list.appendChild(a);
+
+    Object.keys(years).sort().reverse().forEach(function (y) {
+      var det = document.createElement("details");
+      det.className = "cal-year-block";
+      det.open = y >= thisYear;
+
+      var sum = document.createElement("summary");
+      sum.className = "cal-year";
+      sum.innerHTML = '<span class="cal-arrow">&#9654;</span><span>' + y + "</span>" +
+        '<span class="cal-count">' + years[y].length + " " + FD.t("meetings", "次会议") + "</span>";
+      det.appendChild(sum);
+
+      years[y].slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (ev) {
+        det.appendChild(row(ev, today));
       });
+      list.appendChild(det);
     });
+
     var note = document.createElement("p");
     note.className = "chart-note";
-    note.textContent = FD.t("Showing meetings since " + from.slice(0, 4) + ". The chart overlay covers every meeting since 1996.",
-      "列出 " + from.slice(0, 4) + " 年以来的会议。图表叠加层包含 1996 年起的全部会议。");
+    note.textContent = FD.t(
+      "Meetings come from the Federal Reserve calendar and are checked daily. Older statements sit on the boarddocs archive or the year's historical page.",
+      "会议日期取自美联储会议日历，每日核对一次。较早的声明位于 boarddocs 存档或当年的历史页面。"
+    );
     list.appendChild(note);
     document.getElementById("meta").textContent = FD.t("Compiled ", "整理于 ") + (json.updated || "");
   }

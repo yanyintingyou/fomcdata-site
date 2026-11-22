@@ -47,13 +47,18 @@ public/style.css       design tokens and components
 public/site.js         language switch and page metadata
 public/data.js         loading, windows, statistics, URL state
 public/chart.js        SVG renderer, crosshair, exports
-public/data/           market.json, calendar.json
+public/data/           meta, rates, macro, markets, calendar
 scripts/fetch_data.py  fetch, merge, thin, and flag stale series
+scripts/fetch_calendar.py  parse the Fed calendar, add new meetings, resolve links
 .github/workflows/     daily refresh and deploy
 wrangler.toml          Worker name and assets directory
 ```
 
 The Worker serves static assets.
+
+`fetch_calendar.py` reads the Federal Reserve meeting calendar once a day and merges new dates into `calendar.json`. Each meeting carries the statement page for its decision; older links resolve to the boarddocs archive or the historical page for that year. Links are resolved once and stored, so a normal run costs one request.
+
+The calendar page folds years before the current one. Rows open the Federal Reserve statement for that meeting; a chart link beside each row opens the policy rate around that day.
 
 ## Local preview
 
