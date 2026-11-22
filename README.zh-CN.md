@@ -48,14 +48,16 @@ public/data.js         取数、窗口、统计、URL 状态
 public/chart.js        SVG 绘图、十字准线、导出
 public/data/           meta、rates、macro、markets、calendar
 scripts/fetch_data.py  抓取、合并、降采样、标记失败序列
-scripts/fetch_calendar.py  解析美联储会议日历、补入新会议、补齐链接
+scripts/fetch_calendar.py  解析会议、纪要、预测与褐皮书
 .github/workflows/     每日刷新与部署
 wrangler.toml          Worker 名称与资源目录
 ```
 
 Worker 只提供静态资源。
 
-`fetch_calendar.py` 每天读一次美联储会议日历，把新的会议日期并入 `calendar.json`。每次会议带上当次决议的声明页；较早的链接指向 boarddocs 存档或当年的历史页面。链接解析一次后写入文件，日常运行只发一个请求。
+`fetch_calendar.py` 每天读一次美联储会议日历，把新的会议日期并入 `calendar.json`。每场会议带上声明、发布会与经济预测三个页面，以及纪要的发布日期和链接。褐皮书当期取自出版页，往期从归档的年份页补齐，每个年份只抓一次。较早的声明指向 boarddocs 存档或当年的历史页面，解析一次后写入文件。日常运行只发两个请求。
+
+日历页提供三个筛选：决议、纪要、褐皮书，另有「全部」。点行打开 federalreserve.gov 对应页面，决议行右侧另带图表链接。
 
 日历页把当前年份之前的年份折叠起来。点任一行打开美联储当次会议的声明，右侧的图表链接打开以该日为中心的利率图。
 

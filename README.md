@@ -49,14 +49,16 @@ public/data.js         loading, windows, statistics, URL state
 public/chart.js        SVG renderer, crosshair, exports
 public/data/           meta, rates, macro, markets, calendar
 scripts/fetch_data.py  fetch, merge, thin, and flag stale series
-scripts/fetch_calendar.py  parse the Fed calendar, add new meetings, resolve links
+scripts/fetch_calendar.py  parse meetings, minutes, projections and Beige Books
 .github/workflows/     daily refresh and deploy
 wrangler.toml          Worker name and assets directory
 ```
 
 The Worker serves static assets.
 
-`fetch_calendar.py` reads the Federal Reserve meeting calendar once a day and merges new dates into `calendar.json`. Each meeting carries the statement page for its decision; older links resolve to the boarddocs archive or the historical page for that year. Links are resolved once and stored, so a normal run costs one request.
+`fetch_calendar.py` reads the Federal Reserve meeting calendar once a day and merges new dates into `calendar.json`. Each meeting carries its statement, press conference and projection pages, the minutes release date, and the minutes link. Beige Book editions come from the publication page for the running year and from the archive year pages for earlier ones, which are fetched once. Older statements resolve to the boarddocs archive or the historical page for that year, and stay stored afterwards. A normal run costs two requests.
+
+The calendar page filters by decisions, minutes or Beige Books, with everything shown by default. Rows open federalreserve.gov; decisions keep a chart link beside them.
 
 The calendar page folds years before the current one. Rows open the Federal Reserve statement for that meeting; a chart link beside each row opens the policy rate around that day.
 
