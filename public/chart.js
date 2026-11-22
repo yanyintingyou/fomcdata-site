@@ -11,6 +11,12 @@
 
   function day(iso) { return Date.parse(iso + "T00:00:00Z"); }
 
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
   function buildSets(data, opt) {
     var mode = opt.keys.length > 1 ? (opt.mode === "diff" ? "diff" : "norm") : opt.mode || "level";
     return opt.keys.map(function (key, i) {
@@ -184,7 +190,7 @@
       var lx = Math.min(Math.max(atX, L + 26), W - R - 40);
       out.push('<text x="' + lx.toFixed(1) + '" y="' + (T + 11) + '" font-size="9.5" text-anchor="middle" fill="' +
         C.ink + '" stroke="' + C.paper + '" stroke-width="3" paint-order="stroke" letter-spacing="0.04em">' +
-        opt.at + "</text>");
+        esc(opt.at) + "</text>");
     }
 
     var ticks = W < 560 ? 2 : 3;
