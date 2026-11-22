@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   var FD = window.FD;
-  var COLORS = ["#8a3d28", "#2f5d62", "#8a6d1f"];
+  var COLORS = ["#8a3d28", "#2f5d62", "#8a6d1f", "#2b4d7d"];
   var C = {
     ink: "#1b1a17", muted: "#6d675d", dim: "#9a9388",
     rule: "#ded8cb", hair: "#ece8dd", paper: "#faf9f6",
@@ -125,11 +125,24 @@
     events.forEach(function (ev) {
       var t = day(ev.date);
       if (t < t0 || t > t1) return;
-      var x = L + ((t - t0) / (t1 - t0)) * plotW;
-      marks.push({ x: x, ev: ev });
-      out.push('<line x1="' + x.toFixed(1) + '" y1="' + T + '" x2="' + x.toFixed(1) + '" y2="' + (T + plotH) +
-        '" stroke="' + C.event + '" stroke-width="1" stroke-dasharray="2 3"/>');
+      marks.push({ x: L + ((t - t0) / (t1 - t0)) * plotW, ev: ev });
     });
+    var eventSvg = [];
+    if (marks.length > 120) {
+      var seenYear = {};
+      marks.forEach(function (m) {
+        var y = m.ev.date.slice(0, 4);
+        if (seenYear[y]) return;
+        seenYear[y] = 1;
+        eventSvg.push('<line x1="' + m.x.toFixed(1) + '" y1="' + (T + plotH - 9) + '" x2="' + m.x.toFixed(1) +
+          '" y2="' + (T + plotH) + '" stroke="' + C.event + '" stroke-width="1.5" stroke-opacity="0.75"/>');
+      });
+    } else {
+      marks.forEach(function (m) {
+        eventSvg.push('<line x1="' + m.x.toFixed(1) + '" y1="' + T + '" x2="' + m.x.toFixed(1) + '" y2="' + (T + plotH) +
+          '" stroke="' + C.event + '" stroke-width="1" stroke-dasharray="2 3" stroke-opacity="0.55"/>');
+      });
+    }
 
     if (sets[0].mode === "pct") {
       var y0 = yOf(0);
@@ -145,22 +158,24 @@
         d += (pen ? "L" : "M") + xOf(p[0]).toFixed(1) + " " + yOf(v).toFixed(1) + " ";
         pen = true;
       });
-      out.push('<path d="' + d.trim() + '" fill="none" stroke="' + s.color +
-        '" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>');
+      d = d.trim();
       if (sets.length === 1 && s.mode === "level") {
-        var first = null, last = null, firstY = 0, lastY = 0;
+        var firstX = null, lastX = null;
         s.pts.forEach(function (p, i) {
           if (s.out[i] == null) return;
-          if (first == null) { first = xOf(p[0]); firstY = yOf(s.out[i]); }
-          last = xOf(p[0]); lastY = yOf(s.out[i]);
+          if (firstX == null) firstX = xOf(p[0]);
+          lastX = xOf(p[0]);
         });
-        if (first != null) {
-          out.push('<path d="M' + first.toFixed(1) + " " + firstY.toFixed(1) + " L" + last.toFixed(1) + " " +
-            lastY.toFixed(1) + " L" + last.toFixed(1) + " " + (T + plotH) + " L" + first.toFixed(1) + " " +
+        if (firstX != null) {
+          out.push('<path d="' + d + " L" + lastX.toFixed(1) + " " + (T + plotH) + " L" + firstX.toFixed(1) + " " +
             (T + plotH) + ' Z" fill="' + s.color + '" opacity="0.06"/>');
         }
       }
+      out.push('<path d="' + d + '" fill="none" stroke="' + s.color +
+        '" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>');
     });
+
+    out.push(eventSvg.join(""));
 
     var ticks = W < 560 ? 2 : 3;
     for (var k = 0; k <= ticks; k++) {

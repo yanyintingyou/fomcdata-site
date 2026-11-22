@@ -73,7 +73,7 @@
   function readState(defaults) {
     var q = new URLSearchParams(location.search);
     var out = Object.assign({}, defaults);
-    if (q.get("s")) out.keys = q.get("s").split(",").filter(Boolean).slice(0, 3);
+    if (q.get("s")) out.keys = q.get("s").split(",").filter(Boolean).slice(0, 4);
     if (q.get("r") && RANGES[q.get("r")]) out.range = q.get("r");
     if (q.get("sc") === "log") out.scale = "log";
     if (q.get("sc") === "linear") out.scale = "linear";

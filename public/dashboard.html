@@ -21,7 +21,6 @@
       <a href="/dashboard" aria-current="page"><span class="en">Dashboard</span><span class="zh">图表</span></a>
       <a href="/macro"><span class="en">Macro</span><span class="zh">宏观</span></a>
       <a href="/calendar"><span class="en">Calendar</span><span class="zh">日历</span></a>
-      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
       <a href="/about"><span class="en">About</span><span class="zh">关于</span></a>
     </nav>
     <div class="lang-switch" role="group" aria-label="Language">
@@ -36,7 +35,7 @@
 
   <div class="page-head">
     <h1><span class="en">Chart dashboard</span><span class="zh">图表工作台</span></h1>
-    <p class="lede"><span class="en">Pick up to three series, set the window and scale, then read the statistics or export what you see.</span><span class="zh">最多选三个指标，设定区间与坐标，读取窗口统计，导出当前视图。</span></p>
+    <p class="lede"><span class="en">Pick up to four series, set the window and scale, then read the statistics or export what you see.</span><span class="zh">最多选四个指标，设定区间与坐标，读取窗口统计，导出当前视图。</span></p>
     <p class="meta-line" id="meta"></p>
   </div>
 
@@ -98,7 +97,7 @@
 <footer>
   <div class="page" style="padding-top:0">
     <p><span class="en">FRED and Yahoo Finance. Refreshed once a day around 23:17 UTC.</span><span class="zh">数据来源：FRED、Yahoo Finance。每日 23:17 UTC 左右更新一次。</span></p>
-    <p><a href="/methodology"><span class="en">Definitions and update rules</span><span class="zh">指标定义与更新规则</span></a> · <a href="https://github.com/yanyintingyou/fomcdata-site"><span class="en">Source</span><span class="zh">源码</span></a></p>
+    <p><a href="https://github.com/yanyintingyou/fomcdata-site"><span class="en">Source</span><span class="zh">源码</span></a></p>
   </div>
 </footer>
 
@@ -185,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var legend = document.getElementById("legend");
     legend.innerHTML = state.keys.map(function (k, i) {
       var it = data.series[k];
-      var color = ["#8a3d28", "#2f5d62", "#8a6d1f"][i];
+      var color = ["#8a3d28", "#2f5d62", "#8a6d1f", "#2b4d7d"][i];
       return '<span style="color:' + color + '"><i></i>' + FD.t(it.label_en, it.label_zh) + "</span>";
     }).join("") + (state.at ? '<span style="color:var(--dim)">' + FD.t("centered on ", "以 ") + state.at + FD.t("", " 为中心") + "</span>" : "");
 
@@ -225,7 +224,16 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         cells.push([FD.t("Change", "区间涨跌"), (s.change >= 0 ? "+" : "") + FD.fmt(s.change, 2) + "%"]);
       }
-      cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(s.drawdown, 2) + "%"]);
+      if (it.unit === "%") {
+        var peak = pts[0][1], worst = 0;
+        pts.forEach(function (p) {
+          if (p[1] > peak) peak = p[1];
+          if (p[1] - peak < worst) worst = p[1] - peak;
+        });
+        cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(worst, 2) + " pp"]);
+      } else {
+        cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(s.drawdown, 2) + "%"]);
+      }
       cells.push([FD.t("Points", "点数"), String(s.n)]);
     } else {
       state.keys.forEach(function (k) {
@@ -267,7 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var i = state.keys.indexOf(k);
     if (i >= 0) {
       if (state.keys.length > 1) state.keys.splice(i, 1);
-    } else if (state.keys.length < 3) {
+    } else if (state.keys.length < 4) {
       state.keys.push(k);
     }
     draw();

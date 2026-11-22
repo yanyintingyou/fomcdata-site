@@ -19,7 +19,6 @@
       <a href="/dashboard"><span class="en">Dashboard</span><span class="zh">图表</span></a>
       <a href="/macro"><span class="en">Macro</span><span class="zh">宏观</span></a>
       <a href="/calendar"><span class="en">Calendar</span><span class="zh">日历</span></a>
-      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
       <a href="/about" aria-current="page"><span class="en">About</span><span class="zh">关于</span></a>
     </nav>
     <div class="lang-switch" role="group" aria-label="Language">
@@ -39,22 +38,13 @@
 
   <section class="prose">
     <h2><span class="en">What it is</span><span class="zh">定位</span></h2>
-    <p><span class="en">The index lists statistical databases, official releases and literature. The snapshot tracks policy rates, inflation, employment, equities, gold, crude and volatility, refreshed once a day.</span><span class="zh">索引列出统计数据库、官方发布与文献。快照跟踪政策利率、通胀、就业、股指、黄金、原油与波动率，每日刷新一次。</span></p>
-
-    <h2><span class="en">How it is built</span><span class="zh">实现</span></h2>
-    <p><span class="en">Static HTML, CSS and plain JavaScript, served by a Cloudflare Worker. A Python script runs in GitHub Actions each day, pulls a 400-day window per series, merges it into the stored history, and commits the data file. The same job deploys the site.</span><span class="zh">静态 HTML、CSS 与原生 JavaScript，由 Cloudflare Worker 托管。Python 脚本每天在 GitHub Actions 中运行，抓取每个序列最近 400 天，合并进已有历史，提交数据文件，同一任务完成部署。</span></p>
+    <p><span class="en">An index of public data sources for research on the Federal Open Market Committee, with a daily snapshot of policy rates, inflation, employment, equities, gold, crude and volatility. Seven series, drawn from FRED and Yahoo Finance, refreshed once a day at 23:17 UTC.</span><span class="zh">面向美联储研究的数据源索引，附一份政策利率、通胀、就业、股指、黄金、原油与波动率的每日快照。七个序列取自 FRED 与 Yahoo Finance，每天 23:17 UTC 刷新一次。</span></p>
 
     <h2><span class="en">License</span><span class="zh">许可</span></h2>
     <p><span class="en">Code is MIT. Data follows the terms of its publisher; the list is in <a href="https://github.com/yanyintingyou/fomcdata-site/blob/main/LICENSE-DATA.md">LICENSE-DATA.md</a>.</span><span class="zh">代码用 MIT。数据按发布方条款使用，清单见 <a href="https://github.com/yanyintingyou/fomcdata-site/blob/main/LICENSE-DATA.md">LICENSE-DATA.md</a>。</span></p>
 
-    <h2><span class="en">Changes</span><span class="zh">更新记录</span></h2>
-    <ul>
-      <li><span class="en">2026-11 — dashboard, macro, calendar and methodology pages; series comparison, log scale, window statistics, export.</span><span class="zh">2026-11 — 新增图表、宏观、日历、方法页；支持多指标对比、对数坐标、窗口统计与导出。</span></li>
-      <li><span class="en">2026-10 — index published, daily snapshot added.</span><span class="zh">2026-10 — 索引上线，加入每日快照。</span></li>
-    </ul>
-
     <h2><span class="en">Contact</span><span class="zh">联系</span></h2>
-    <p><span class="en">Maintained by <a href="https://github.com/yanyintingyou">yanyintingyou</a>. Issues and corrections go to the <a href="https://github.com/yanyintingyou/fomcdata-site/issues">repository</a>.</span><span class="zh">由 <a href="https://github.com/yanyintingyou">yanyintingyou</a> 维护。问题与更正请提到<a href="https://github.com/yanyintingyou/fomcdata-site/issues">仓库</a>。</span></p>
+    <p><span class="en">Maintained by <a href="https://github.com/yanyintingyou">yanyintingyou</a>. Corrections and requests go to the <a href="https://github.com/yanyintingyou/fomcdata-site/issues">repository</a>.</span><span class="zh">由 <a href="https://github.com/yanyintingyou">yanyintingyou</a> 维护。更正与需求请提到<a href="https://github.com/yanyintingyou/fomcdata-site/issues">仓库</a>。</span></p>
   </section>
 
 </main>

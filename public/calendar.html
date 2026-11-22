@@ -20,7 +20,6 @@
       <a href="/dashboard"><span class="en">Dashboard</span><span class="zh">图表</span></a>
       <a href="/macro"><span class="en">Macro</span><span class="zh">宏观</span></a>
       <a href="/calendar" aria-current="page"><span class="en">Calendar</span><span class="zh">日历</span></a>
-      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
       <a href="/about"><span class="en">About</span><span class="zh">关于</span></a>
     </nav>
     <div class="lang-switch" role="group" aria-label="Language">
@@ -58,7 +57,8 @@ document.addEventListener("DOMContentLoaded", function () {
     var zh = document.documentElement.lang === "zh-CN";
     var today = new Date().toISOString().slice(0, 10);
     var years = {};
-    json.events.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (ev) {
+    var from = (new Date().getFullYear() - 2) + "-01-01";
+    json.events.slice().filter(function (e) { return e.date >= from; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (ev) {
       var y = ev.date.slice(0, 4);
       (years[y] = years[y] || []).push(ev);
     });
@@ -79,6 +79,11 @@ document.addEventListener("DOMContentLoaded", function () {
         list.appendChild(a);
       });
     });
+    var note = document.createElement("p");
+    note.className = "chart-note";
+    note.textContent = FD.t("Showing meetings since " + from.slice(0, 4) + ". The chart overlay covers every meeting since 1996.",
+      "列出 " + from.slice(0, 4) + " 年以来的会议。图表叠加层包含 1996 年起的全部会议。");
+    list.appendChild(note);
     document.getElementById("meta").textContent = FD.t("Compiled ", "整理于 ") + (json.updated || "");
   }
 

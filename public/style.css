@@ -784,11 +784,13 @@ footer a:hover {
 
 /* ---------- calendar ---------- */
 
-.cal-year {
-  margin: 34px 0 6px;
+.page .cal-year {
+  margin: 40px 0 10px;
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .cal-row {
