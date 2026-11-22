@@ -47,6 +47,7 @@ public/style.css       design tokens and components
 public/site.js         language switch and page metadata
 public/data.js         loading, windows, statistics, URL state
 public/chart.js        SVG renderer, crosshair, exports
+public/{home,dashboard,calendar,macro}.js  page scripts
 public/data/           meta, rates, macro, markets, calendar
 scripts/fetch_data.py  fetch, merge, thin, and flag stale series
 scripts/fetch_calendar.py  parse meetings, minutes, projections and Beige Books

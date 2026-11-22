@@ -46,6 +46,7 @@ public/style.css       设计令牌与组件
 public/site.js         语言切换与页面元信息
 public/data.js         取数、窗口、统计、URL 状态
 public/chart.js        SVG 绘图、十字准线、导出
+public/{home,dashboard,calendar,macro}.js  页面脚本
 public/data/           meta、rates、macro、markets、calendar
 scripts/fetch_data.py  抓取、合并、降采样、标记失败序列
 scripts/fetch_calendar.py  解析会议、纪要、预测与褐皮书
