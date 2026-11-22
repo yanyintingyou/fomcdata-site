@@ -196,6 +196,10 @@ SPECS = [
         "unit": "%",
         "decimals": 2,
         "thin": True,
+        "category": "rates",
+        "frequency": "daily",
+        "source": "FRED DFF",
+        "hidden": False,
     },
     {
         "key": "cpi",
@@ -207,6 +211,10 @@ SPECS = [
         "unit": "%",
         "decimals": 2,
         "thin": False,
+        "category": "inflation",
+        "frequency": "monthly",
+        "source": "FRED CPIAUCSL",
+        "hidden": False,
     },
     {
         "key": "unrate",
@@ -218,6 +226,10 @@ SPECS = [
         "unit": "%",
         "decimals": 2,
         "thin": False,
+        "category": "labor",
+        "frequency": "monthly",
+        "source": "FRED UNRATE",
+        "hidden": False,
     },
     {
         "key": "spx",
@@ -229,6 +241,10 @@ SPECS = [
         "unit": "",
         "decimals": 0,
         "thin": True,
+        "category": "markets",
+        "frequency": "daily",
+        "source": "Yahoo Finance ^GSPC",
+        "hidden": False,
     },
     {
         "key": "gold",
@@ -240,6 +256,10 @@ SPECS = [
         "unit": "",
         "decimals": 0,
         "thin": True,
+        "category": "commodities",
+        "frequency": "daily",
+        "source": "Yahoo Finance GC=F",
+        "hidden": False,
     },
     {
         "key": "oil",
@@ -251,6 +271,10 @@ SPECS = [
         "unit": "",
         "decimals": 2,
         "thin": True,
+        "category": "commodities",
+        "frequency": "daily",
+        "source": "Yahoo Finance CL=F",
+        "hidden": False,
     },
     {
         "key": "vix",
@@ -262,8 +286,27 @@ SPECS = [
         "unit": "",
         "decimals": 2,
         "thin": True,
+        "category": "markets",
+        "frequency": "daily",
+        "source": "Yahoo Finance ^VIX",
+        "hidden": False,
     },
 ]
+
+
+def fetch_recessions():
+    rows = fetch_fred("USREC", FULL_START)
+    spans = []
+    start = None
+    for day, value in rows:
+        if value >= 1 and start is None:
+            start = day
+        elif value < 1 and start is not None:
+            spans.append([start.isoformat(), day.isoformat()])
+            start = None
+    if start is not None:
+        spans.append([start.isoformat(), date.today().isoformat()])
+    return spans
 
 
 def build_series(spec, rows):
@@ -279,6 +322,10 @@ def build_series(spec, rows):
         "short": spec["tile_en"],
         "unit": spec["unit"],
         "decimals": spec["decimals"],
+        "category": spec["category"],
+        "frequency": spec["frequency"],
+        "source": spec["source"],
+        "hidden": spec["hidden"],
         "asof": last_day.isoformat(),
         "last": round(last_value, spec["decimals"]),
         "prev": round(prev_value, spec["decimals"]),
@@ -334,9 +381,15 @@ def main():
         print("no series available", file=sys.stderr)
         return 1
 
+    try:
+        recessions = fetch_recessions()
+    except Exception:  # noqa: BLE001
+        recessions = []
+
     payload = {
         "updated": now,
         "warnings": failed,
+        "recessions": recessions,
         "series": series,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

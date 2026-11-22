@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — FOMC Data</title>
+<meta name="description" content="Compare market and macro series, switch ranges and scales, read window statistics, and export the chart.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script src="/data.js" defer></script>
+<script src="/chart.js" defer></script>
+</head>
+<body data-title-en="Dashboard — FOMC Data" data-title-zh="图表 — FOMC Data" data-desc-en="Compare market and macro series, switch ranges and scales, read window statistics, and export the chart." data-desc-zh="多指标对比、区间与坐标切换、窗口统计与图表导出。">
+
+<header class="global-head">
+  <div class="global-inner">
+    <a class="mark" href="/">FOMC Data</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/"><span class="en">Index</span><span class="zh">索引</span></a>
+      <a href="/dashboard" aria-current="page"><span class="en">Dashboard</span><span class="zh">图表</span></a>
+      <a href="/macro"><span class="en">Macro</span><span class="zh">宏观</span></a>
+      <a href="/calendar"><span class="en">Calendar</span><span class="zh">日历</span></a>
+      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
+      <a href="/about"><span class="en">About</span><span class="zh">关于</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="page-head">
+    <h1><span class="en">Chart dashboard</span><span class="zh">图表工作台</span></h1>
+    <p class="lede"><span class="en">Pick up to three series, set the window and scale, then read the statistics or export what you see.</span><span class="zh">最多选三个指标，设定区间与坐标，读取窗口统计，导出当前视图。</span></p>
+    <p class="meta-line" id="meta"></p>
+  </div>
+
+  <div class="panel">
+    <div class="control">
+      <span class="ctl-label"><span class="en">Series</span><span class="zh">指标</span></span>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="control">
+      <span class="ctl-label"><span class="en">Range</span><span class="zh">区间</span></span>
+      <div class="seg" id="ranges">
+        <button type="button" data-range="1y">1Y</button>
+        <button type="button" data-range="3y">3Y</button>
+        <button type="button" data-range="5y">5Y</button>
+        <button type="button" data-range="10y">10Y</button>
+        <button type="button" data-range="20y">20Y</button>
+        <button type="button" data-range="30y">30Y</button>
+      </div>
+    </div>
+    <div class="control">
+      <span class="ctl-label"><span class="en">Scale</span><span class="zh">坐标</span></span>
+      <div class="seg" id="scale">
+        <button type="button" data-scale="linear">Lin</button>
+        <button type="button" data-scale="log">Log</button>
+      </div>
+    </div>
+    <div class="control">
+      <span class="ctl-label"><span class="en">Mode</span><span class="zh">模式</span></span>
+      <div class="seg" id="mode">
+        <button type="button" data-mode="level"><span class="en">Level</span><span class="zh">点位</span></button>
+        <button type="button" data-mode="pct"><span class="en">% chg</span><span class="zh">涨跌幅</span></button>
+        <button type="button" data-mode="vol"><span class="en">Vol</span><span class="zh">波动率</span></button>
+      </div>
+    </div>
+    <div class="control">
+      <span class="ctl-label"><span class="en">Overlay</span><span class="zh">叠加</span></span>
+      <div class="seg" id="overlays">
+        <button type="button" data-ov="re"><span class="en">Recessions</span><span class="zh">衰退</span></button>
+        <button type="button" data-ov="ev"><span class="en">FOMC</span><span class="zh">FOMC</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="plot" id="plot" tabindex="0" aria-label="Chart"></div>
+  <div class="legend" id="legend"></div>
+  <dl class="stats" id="stats"></dl>
+
+  <div class="actions">
+    <button class="btn" type="button" id="csv"><span class="en">CSV</span><span class="zh">CSV</span></button>
+    <button class="btn" type="button" id="png">PNG</button>
+    <button class="btn" type="button" id="svg">SVG</button>
+    <button class="btn" type="button" id="copy"><span class="en">Copy link</span><span class="zh">复制链接</span></button>
+  </div>
+
+  <p class="chart-note" id="note"></p>
+
+</main>
+
+<footer>
+  <div class="page" style="padding-top:0">
+    <p><span class="en">FRED and Yahoo Finance. Refreshed once a day around 23:17 UTC.</span><span class="zh">数据来源：FRED、Yahoo Finance。每日 23:17 UTC 左右更新一次。</span></p>
+    <p><a href="/methodology"><span class="en">Definitions and update rules</span><span class="zh">指标定义与更新规则</span></a> · <a href="https://github.com/yanyintingyou/fomcdata-site"><span class="en">Source</span><span class="zh">源码</span></a></p>
+  </div>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var state = FD.readState({ keys: ["effr"], range: "1y", scale: "linear", mode: "level", overlays: ["re"] });
+  var data = null, events = [], plot = document.getElementById("plot");
+
+  function selectedMonthly() {
+    return state.keys.some(function (k) { return data.series[k] && data.series[k].frequency === "monthly"; });
+  }
+
+  function normalizeState() {
+    if (state.keys.length > 1) {
+      state.mode = "norm";
+    } else if (state.mode === "vol" && selectedMonthly()) {
+      state.mode = "level";
+    } else if (state.mode === "norm") {
+      state.mode = "level";
+    }
+  }
+
+  function syncButtons() {
+    document.querySelectorAll("#chips .chip").forEach(function (b) {
+      b.setAttribute("aria-pressed", state.keys.indexOf(b.dataset.key) >= 0 ? "true" : "false");
+    });
+    document.querySelectorAll("#ranges button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset.range === state.range ? "true" : "false");
+    });
+    document.querySelectorAll("#scale button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset.scale === state.scale ? "true" : "false");
+    });
+    document.querySelectorAll("#mode button").forEach(function (b) {
+      var m = b.dataset.mode;
+      var disabled = state.keys.length > 1 || (m === "vol" && selectedMonthly());
+      b.disabled = disabled;
+      b.setAttribute("aria-pressed", state.mode === m ? "true" : "false");
+    });
+    document.querySelectorAll("#overlays button").forEach(function (b) {
+      b.setAttribute("aria-pressed", state.overlays.indexOf(b.dataset.ov) >= 0 ? "true" : "false");
+    });
+  }
+
+  function renderChips() {
+    var box = document.getElementById("chips");
+    box.innerHTML = "";
+    Object.keys(data.series).forEach(function (k) {
+      var item = data.series[k];
+      if (item.hidden) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.dataset.key = k;
+      b.textContent = FD.t(item.tile_en, item.tile_zh);
+      box.appendChild(b);
+    });
+  }
+
+  function draw() {
+    normalizeState();
+    FD.writeState(state);
+    syncButtons();
+    var names = state.keys.map(function (k) {
+      var it = data.series[k];
+      return FD.t(it.label_en, it.label_zh);
+    });
+    var sub = FD.t("Source: FRED, Yahoo Finance", "来源：FRED、Yahoo Finance");
+    FDChart.render(plot, {
+      data: data,
+      keys: state.keys,
+      range: state.range,
+      scale: state.scale,
+      mode: state.mode,
+      overlays: state.overlays,
+      events: events,
+      at: state.at,
+      height: 360,
+      ariaLabel: names.join(", "),
+      title: names.join(" · ") + " · " + state.range.toUpperCase(),
+      subtitle: sub,
+      onEvent: function (ev) { state.at = state.at === ev.date ? null : ev.date; draw(); }
+    });
+
+    var legend = document.getElementById("legend");
+    legend.innerHTML = state.keys.map(function (k, i) {
+      var it = data.series[k];
+      var color = ["#8a3d28", "#2f5d62", "#8a6d1f"][i];
+      return '<span style="color:' + color + '"><i></i>' + FD.t(it.label_en, it.label_zh) + "</span>";
+    }).join("") + (state.at ? '<span style="color:var(--dim)">' + FD.t("centered on ", "以 ") + state.at + FD.t("", " 为中心") + "</span>" : "");
+
+    renderStats();
+    document.getElementById("meta").textContent = data.updated
+      ? (FD.t("Last run ", "最近一次运行 ") + data.updated.slice(0, 16).replace("T", " ") + " UTC")
+      : "";
+    var stale = state.keys.filter(function (k) { return data.series[k].stale; });
+    var note = document.getElementById("note");
+    if (stale.length) {
+      note.textContent = FD.t("Refresh failed for: ", "抓取未完成的指标：") +
+        stale.map(function (k) { return data.series[k].tile_en; }).join(", ") + ".";
+    } else if (state.keys.length > 1) {
+      note.textContent = FD.t("Normalized to 100 at the start of the window. Hover for raw values.",
+        "以窗口起点为 100 归一化。悬停可读原始值。");
+    } else {
+      note.textContent = FD.t("Hover or drag for values. Arrow keys move point by point when the chart is focused.",
+        "悬停或拖动读取数值。图表获得焦点后可用左右方向键逐点移动。");
+    }
+  }
+
+  function renderStats() {
+    var box = document.getElementById("stats");
+    box.innerHTML = "";
+    var cells = [];
+    if (state.keys.length === 1) {
+      var it = data.series[state.keys[0]];
+      var pts = FD.windowPoints(it, state.range, state.at);
+      var s = FD.stats(pts);
+      if (!s) { box.innerHTML = ""; return; }
+      cells.push([FD.t("High", "最高"), FD.fmt(s.high, it.decimals) + (it.unit || "")]);
+      cells.push([FD.t("Low", "最低"), FD.fmt(s.low, it.decimals) + (it.unit || "")]);
+      cells.push([FD.t("Mean", "均值"), FD.fmt(s.mean, it.decimals) + (it.unit || "")]);
+      if (it.unit === "%") {
+        var pp = pts[pts.length - 1][1] - pts[0][1];
+        cells.push([FD.t("Change", "区间变化"), (pp >= 0 ? "+" : "") + FD.fmt(pp, 2) + " pp"]);
+      } else {
+        cells.push([FD.t("Change", "区间涨跌"), (s.change >= 0 ? "+" : "") + FD.fmt(s.change, 2) + "%"]);
+      }
+      cells.push([FD.t("Max drawdown", "最大回撤"), FD.fmt(s.drawdown, 2) + "%"]);
+      cells.push([FD.t("Points", "点数"), String(s.n)]);
+    } else {
+      state.keys.forEach(function (k) {
+        var it = data.series[k];
+        var s = FD.stats(FD.windowPoints(it, state.range, state.at));
+        if (!s) return;
+        cells.push([FD.t(it.tile_en, it.tile_zh), (s.change >= 0 ? "+" : "") + FD.fmt(s.change, 2) + "%"]);
+      });
+    }
+    cells.forEach(function (c) {
+      var wrap = document.createElement("div");
+      wrap.className = "stat";
+      wrap.innerHTML = "<dt>" + c[0] + "</dt><dd>" + c[1] + "</dd>";
+      box.appendChild(wrap);
+    });
+  }
+
+  function fileBase() {
+    return "fomcdata_" + state.keys.join("-") + "_" + state.range + "_" + new Date().toISOString().slice(0, 10);
+  }
+
+  function exportCSV() {
+    var lines = ["date," + state.keys.join(",")];
+    var sets = state.keys.map(function (k) { return FD.windowPoints(data.series[k], state.range, state.at); });
+    var map = {};
+    sets.forEach(function (pts, i) {
+      pts.forEach(function (p) { (map[p[0]] = map[p[0]] || [])[i] = p[1]; });
+    });
+    Object.keys(map).sort().forEach(function (d) {
+      lines.push(d + "," + state.keys.map(function (_, i) { return map[d][i] == null ? "" : map[d][i]; }).join(","));
+    });
+    FDChart.download(new Blob([lines.join("\n")], { type: "text/csv" }), fileBase() + ".csv");
+  }
+
+  document.getElementById("chips").addEventListener("click", function (e) {
+    var b = e.target.closest(".chip");
+    if (!b) return;
+    var k = b.dataset.key;
+    var i = state.keys.indexOf(k);
+    if (i >= 0) {
+      if (state.keys.length > 1) state.keys.splice(i, 1);
+    } else if (state.keys.length < 3) {
+      state.keys.push(k);
+    }
+    draw();
+  });
+
+  document.getElementById("ranges").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b) { state.range = b.dataset.range; draw(); }
+  });
+  document.getElementById("scale").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b) { state.scale = b.dataset.scale; draw(); }
+  });
+  document.getElementById("mode").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b && !b.disabled) { state.mode = b.dataset.mode; draw(); }
+  });
+  document.getElementById("overlays").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    var i = state.overlays.indexOf(b.dataset.ov);
+    if (i >= 0) state.overlays.splice(i, 1);
+    else state.overlays.push(b.dataset.ov);
+    draw();
+  });
+
+  document.getElementById("csv").addEventListener("click", exportCSV);
+  document.getElementById("png").addEventListener("click", function () { FDChart.png(plot, fileBase()); });
+  document.getElementById("svg").addEventListener("click", function () { FDChart.exportSVG(plot, fileBase()); });
+  document.getElementById("copy").addEventListener("click", function () {
+    var btn = this;
+    navigator.clipboard.writeText(location.href).then(function () {
+      var old = btn.innerHTML;
+      btn.textContent = FD.t("Copied", "已复制");
+      setTimeout(function () { btn.innerHTML = old; }, 1400);
+    });
+  });
+
+  FD.onLang = function () { if (data) { renderChips(); draw(); } };
+
+  Promise.all([
+    FD.load(),
+    fetch("/data/calendar.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : { events: [] }; }).catch(function () { return { events: [] }; })
+  ]).then(function (res) {
+    data = res[0];
+    events = (res[1].events || []).filter(function (e) { return e.type === "fomc"; });
+    state.keys = state.keys.filter(function (k) { return data.series[k]; });
+    if (!state.keys.length) state.keys = ["effr"];
+    renderChips();
+    draw();
+  }).catch(function () {
+    plot.innerHTML = '<p class="chart-note">Data unavailable.</p>';
+  });
+});
+</script>
+
+</body>
+</html>

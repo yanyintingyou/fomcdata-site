@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar — FOMC Data</title>
+<meta name="description" content="FOMC meeting dates with links to the policy rate chart around each decision.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script src="/data.js" defer></script>
+</head>
+<body data-title-en="Calendar — FOMC Data" data-title-zh="日历 — FOMC Data" data-desc-en="FOMC meeting dates with links to the policy rate chart around each decision." data-desc-zh="FOMC 会议日期，可跳转到每次决议前后的利率图表。">
+
+<header class="global-head">
+  <div class="global-inner">
+    <a class="mark" href="/">FOMC Data</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/"><span class="en">Index</span><span class="zh">索引</span></a>
+      <a href="/dashboard"><span class="en">Dashboard</span><span class="zh">图表</span></a>
+      <a href="/macro"><span class="en">Macro</span><span class="zh">宏观</span></a>
+      <a href="/calendar" aria-current="page"><span class="en">Calendar</span><span class="zh">日历</span></a>
+      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
+      <a href="/about"><span class="en">About</span><span class="zh">关于</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="page-head">
+    <h1><span class="en">FOMC calendar</span><span class="zh">FOMC 日历</span></h1>
+    <p class="lede"><span class="en">Decision dates for scheduled meetings. Each row opens the policy rate chart centered on that day.</span><span class="zh">例行会议的决定日期。点任一行，打开以该日为中心的利率图表。</span></p>
+    <p class="meta-line" id="meta"></p>
+  </div>
+
+  <div id="list"></div>
+
+</main>
+
+<footer>
+  <div class="page" style="padding-top:0">
+    <p><span class="en">Dates follow the Federal Reserve meeting calendar. A two-day meeting ends on the date shown.</span><span class="zh">日期依据美联储会议日历，两日会议以结束日为准。</span></p>
+    <p><a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"><span class="en">Federal Reserve calendar</span><span class="zh">美联储会议日历</span></a></p>
+  </div>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function draw(json) {
+    var list = document.getElementById("list");
+    list.innerHTML = "";
+    var zh = document.documentElement.lang === "zh-CN";
+    var today = new Date().toISOString().slice(0, 10);
+    var years = {};
+    json.events.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (ev) {
+      var y = ev.date.slice(0, 4);
+      (years[y] = years[y] || []).push(ev);
+    });
+    Object.keys(years).forEach(function (y) {
+      var h = document.createElement("h2");
+      h.className = "cal-year";
+      h.textContent = y;
+      list.appendChild(h);
+      years[y].forEach(function (ev) {
+        var days = Math.round((Date.parse(ev.date + "T00:00:00Z") - Date.parse(today + "T00:00:00Z")) / 86400000);
+        var a = document.createElement("a");
+        a.className = "cal-row" + (ev.date < today ? " past" : "") + (days >= 0 && days <= 30 ? " cal-soon" : "");
+        a.href = "/dashboard?s=effr&r=1y&at=" + ev.date + "&ov=ev";
+        var title = FD.t("FOMC decision", "FOMC 决议") + (ev.sep ? FD.t(" · with projections", " · 含经济预测") : "");
+        var tag = days === 0 ? FD.t("today", "今天") : days > 0 ? FD.t("in " + days + " days", days + " 天后") : "";
+        a.innerHTML = '<span class="cal-date">' + ev.date + '</span><span class="cal-title">' + title +
+          '</span><span class="cal-tag">' + tag + "</span>";
+        list.appendChild(a);
+      });
+    });
+    document.getElementById("meta").textContent = FD.t("Compiled ", "整理于 ") + (json.updated || "");
+  }
+
+  fetch("/data/calendar.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (json) {
+      draw(json);
+      FD.onLang = function () { draw(json); };
+    })
+    .catch(function () {
+      document.getElementById("list").innerHTML = '<p class="chart-note">Calendar unavailable.</p>';
+    });
+});
+</script>
+
+</body>
+</html>

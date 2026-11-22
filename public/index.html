@@ -5,29 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FOMC Data — Public Data Source Index</title>
 <meta name="description" content="An index of statistical databases, official releases, and literature related to Federal Open Market Committee research.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/style.css">
-<script>
-(function () {
-  var META = {
-    en: { title: "FOMC Data — Public Data Source Index", desc: "An index of statistical databases, official releases, and literature related to Federal Open Market Committee research." },
-    zh: { title: "FOMC Data — 公开数据源索引", desc: "与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源索引。" }
-  };
-  window.setSiteLang = function (lang) {
-    var key = lang === "zh" ? "zh" : "en";
-    document.documentElement.lang = key === "zh" ? "zh-CN" : "en";
-    document.title = META[key].title;
-    var m = document.querySelector('meta[name="description"]');
-    if (m) m.setAttribute("content", META[key].desc);
-    var b = document.querySelectorAll("[data-lang]");
-    for (var i = 0; i < b.length; i++) {
-      b[i].setAttribute("aria-pressed", b[i].getAttribute("data-lang") === key ? "true" : "false");
-    }
-  };
-  window.setSiteLang(localStorage.getItem("fomcdata-lang"));
-})();
-</script>
+<script src="/site.js" defer></script>
+<script src="/data.js" defer></script>
+<script src="/chart.js" defer></script>
 </head>
-<body>
+<body data-title-en="FOMC Data — Public Data Source Index" data-title-zh="FOMC Data — 公开数据源索引" data-desc-en="An index of statistical databases, official releases, and literature related to Federal Open Market Committee research." data-desc-zh="与联邦公开市场委员会研究相关的统计数据库、官方发布与文献来源索引。">
+<header class="global-head">
+  <div class="global-inner">
+    <a class="mark" href="/">FOMC Data</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/" aria-current="page"><span class="en">Index</span><span class="zh">索引</span></a>
+      <a href="/dashboard"><span class="en">Dashboard</span><span class="zh">图表</span></a>
+      <a href="/macro"><span class="en">Macro</span><span class="zh">宏观</span></a>
+      <a href="/calendar"><span class="en">Calendar</span><span class="zh">日历</span></a>
+      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
+      <a href="/about"><span class="en">About</span><span class="zh">关于</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+    </div>
+  </div>
+</header>
 
 <div class="layout">
 
@@ -68,8 +70,9 @@
           <button type="button" data-range="30y" aria-pressed="false">30Y</button>
         </span>
       </figcaption>
-      <svg id="chart" viewBox="0 0 640 208" role="img" aria-labelledby="chart-label"></svg>
+      <div class="plot" id="home-plot" tabindex="0" aria-label="Market snapshot chart"></div>
     </figure>
+    <p class="chart-note"><a href="/dashboard"><span class="en">Open the full dashboard: comparison, ranges, statistics, export →</span><span class="zh">打开完整图表：多指标对比、区间统计、导出 →</span></a></p>
     <p class="stale" id="stale-note" hidden></p>
     <p class="note"><span class="en">Sources: FRED, Yahoo Finance. Refreshed once a day around 23:00 UTC.</span><span class="zh">数据来源：FRED、Yahoo Finance。每日 23:00 UTC 左右更新一次。</span><span class="run" id="run-time"></span></p>
   </section>
@@ -193,254 +196,106 @@
 <footer>
   <p><span class="en">All sources are publicly accessible third-party sites. Last compiled October 2026.</span><span class="zh">以上均为公开可访问的第三方来源 · 最后整理于 2026 年 10 月</span></p>
   <p class="credit"><span class="en">Maintained by <a href="https://github.com/yanyintingyou">yanyintingyou</a></span><span class="zh">由 <a href="https://github.com/yanyintingyou">yanyintingyou</a> 维护</span></p>
+  <p><a href="/methodology"><span class="en">Methodology</span><span class="zh">指标方法</span></a> · <a href="/about"><span class="en">About and license</span><span class="zh">关于与许可</span></a> · <a href="https://github.com/yanyintingyou/fomcdata-site"><span class="en">Source</span><span class="zh">源码</span></a></p>
 </footer>
 
 </div>
 
 <script>
-(function () {
-  var data = null;
-  var current = "effr";
-  var range = "1y";
-  var state = null;
-  var RANGES = {
-    "1y": 365,
-    "3y": 365 * 3,
-    "5y": 365 * 5,
-    "10y": 365 * 10,
-    "20y": 365 * 20,
-    "30y": 365 * 30
-  };
+document.addEventListener("DOMContentLoaded", function () {
+  var data = null, current = "effr", range = "1y";
+  var plot = document.getElementById("home-plot");
 
-  function fmt(v, d) { return v.toFixed(d); }
-
-  function deltaText(item) {
-    var diff = item.last - item.prev;
-    var sign = diff > 0 ? "+" : "";
-    var suffix = item.unit === "%" ? " pp" : "";
-    return sign + diff.toFixed(item.decimals) + suffix;
-  }
-
-  function sparkPath(points, w, h) {
-    if (points.length < 2) return "";
-    var vals = points.map(function (p) { return p[1]; });
-    var min = Math.min.apply(null, vals);
-    var max = Math.max.apply(null, vals);
-    var span = max - min || 1;
-    var step = w / (points.length - 1);
-    return points.map(function (p, i) {
-      var x = i * step;
-      var y = h - 3 - ((p[1] - min) / span) * (h - 6);
-      return (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
-    }).join(" ");
-  }
-
-  function renderTiles() {
-    var box = document.getElementById("tiles");
+  function draw() {
+    if (!data || !data.series[current]) return;
+    var item = data.series[current];
     var zh = document.documentElement.lang === "zh-CN";
+    FDChart.render(plot, {
+      data: data,
+      keys: [current],
+      range: range,
+      scale: "linear",
+      mode: "level",
+      overlays: [],
+      height: 250,
+      ariaLabel: FD.t(item.label_en, item.label_zh),
+      title: FD.t(item.label_en, item.label_zh) + " · " + range.toUpperCase(),
+      subtitle: FD.t("Source: FRED, Yahoo Finance", "来源：FRED、Yahoo Finance") + " · " + item.asof
+    });
+    document.getElementById("chart-label").textContent =
+      (zh ? item.label_zh : item.label_en) + " · " + FD.fmt(item.last, item.decimals) +
+      (item.unit || "") + " · " + item.asof;
+    var stale = document.getElementById("stale-note");
+    stale.hidden = !item.stale;
+    stale.textContent = item.stale
+      ? (zh ? "最近一次抓取未完成，图表显示截至 " + item.asof + " 的数据。" : "The latest refresh did not complete. Chart shows data through " + item.asof + ".")
+      : "";
+    document.getElementById("run-time").textContent = data.updated
+      ? " · " + (zh ? "最近一次运行 " : "Last run ") + data.updated.slice(0, 16).replace("T", " ") + " UTC"
+      : "";
+    document.querySelectorAll(".tile").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset.key === current ? "true" : "false");
+    });
+    document.querySelectorAll("#ranges button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset.range === range ? "true" : "false");
+    });
+  }
+
+  function tiles() {
+    var box = document.getElementById("tiles");
     box.innerHTML = "";
     Object.keys(data.series).forEach(function (key) {
       var item = data.series[key];
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "tile";
-      btn.setAttribute("data-key", key);
-      btn.setAttribute("aria-pressed", key === current ? "true" : "false");
-      var flag = "";
-      if (item.stale) {
-        var tip = zh ? "最近一次抓取未完成，显示的是历史数据" : "Latest refresh failed, showing cached data";
-        flag = '<span class="flag" role="img" aria-label="' + tip + '" title="' + tip + '"></span>';
-      }
-      var pts = item.points.slice(-30);
-      btn.innerHTML =
-        '<span class="tile-name"><span class="en">' + item.tile_en + '</span><span class="zh">' + item.tile_zh + '</span>' + flag + '</span>' +
-        '<span class="tile-value">' + fmt(item.last, item.decimals) +
+      if (item.hidden) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "tile";
+      b.dataset.key = key;
+      var last30 = item.points.slice(-30).map(function (p) { return p[1]; });
+      var min = Math.min.apply(null, last30), max = Math.max.apply(null, last30);
+      var span = max - min || 1;
+      var d = last30.map(function (v, i) {
+        return (i ? "L" : "M") + (i * 100 / (last30.length - 1)).toFixed(1) + " " +
+          (26 - ((v - min) / span) * 22).toFixed(1);
+      }).join(" ");
+      var flag = item.stale
+        ? '<span class="flag" role="img" aria-label="' + FD.t("Latest refresh failed", "最近一次抓取未完成") + '"></span>'
+        : "";
+      b.innerHTML =
+        '<span class="tile-name"><span class="en">' + item.tile_en + '</span><span class="zh">' + item.tile_zh + "</span>" + flag + "</span>" +
+        '<span class="tile-value">' + FD.fmt(item.last, item.decimals) +
           (item.unit ? '<span class="unit">' + item.unit + "</span>" : "") + "</span>" +
-        '<span class="tile-delta">' + deltaText(item) + "</span>" +
-        '<svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">' +
-          '<path d="' + sparkPath(pts, 100, 28) + '" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-        "</svg>";
-      box.appendChild(btn);
+        '<span class="tile-delta">' + FD.deltaText(item) + "</span>" +
+        '<svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path d="' + d +
+        '" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>';
+      box.appendChild(b);
     });
   }
 
-  function renderChart() {
-    if (!data) return;
-    var item = data.series[current];
-    var days = RANGES[range];
-    var cutoff = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
-    var pts = item.points.filter(function (p) { return p[0] >= cutoff; });
-    if (pts.length < 2) pts = item.points.slice(-30);
-
-    var W = 640, H = 208, L = 4, R = 46, T = 12, B = 22;
-    var vals = pts.map(function (p) { return p[1]; });
-    var rawMin = Math.min.apply(null, vals);
-    var rawMax = Math.max.apply(null, vals);
-    var pad = (rawMax - rawMin) * 0.12 || 1;
-    var min = rawMin - pad;
-    var max = rawMax + pad;
-    var span = max - min || 1;
-    var t0 = Date.parse(pts[0][0] + "T00:00:00Z");
-    var t1 = Date.parse(pts[pts.length - 1][0] + "T00:00:00Z");
-    var tSpan = t1 - t0 || 1;
-
-    function xOf(d) { return L + ((Date.parse(d + "T00:00:00Z") - t0) / tSpan) * (W - L - R); }
-    function yOf(v) { return T + (1 - (v - min) / span) * (H - T - B); }
-
-    var line = pts.map(function (p, i) {
-      return (i ? "L" : "M") + xOf(p[0]).toFixed(1) + " " + yOf(p[1]).toFixed(1);
-    }).join(" ");
-    var lastX = xOf(pts[pts.length - 1][0]).toFixed(1);
-    var firstX = xOf(pts[0][0]).toFixed(1);
-    var baseY = H - B;
-    var area = line + " L" + lastX + " " + baseY + " L" + firstX + " " + baseY + " Z";
-
-    var grid = [0, 0.5, 1].map(function (f) {
-      var y = T + f * (H - T - B);
-      return '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '" stroke="var(--hair)" stroke-width="1"/>';
-    }).join("");
-
-    var labels =
-      '<text x="' + (W - R + 6) + '" y="' + (T + 4) + '" font-size="10" fill="var(--dim)">' + fmt(rawMax, item.decimals) + "</text>" +
-      '<text x="' + (W - R + 6) + '" y="' + (H - B) + '" font-size="10" fill="var(--dim)">' + fmt(rawMin, item.decimals) + "</text>" +
-      '<text x="' + L + '" y="' + (H - 6) + '" font-size="10" fill="var(--dim)">' + pts[0][0] + "</text>" +
-      '<text x="' + (W - R) + '" y="' + (H - 6) + '" font-size="10" fill="var(--dim)" text-anchor="end">' + pts[pts.length - 1][0] + "</text>";
-
-    document.getElementById("chart").innerHTML = grid +
-      '<path d="' + area + '" fill="var(--accent)" opacity="0.07"/>' +
-      '<path d="' + line + '" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-linejoin="round"/>' +
-      labels +
-      '<g id="cross"></g>';
-
-    state = { pts: pts, xOf: xOf, yOf: yOf, W: W, H: H, L: L, R: R, T: T, B: B, item: item };
-    hideCross();
-
-    var zh = document.documentElement.lang === "zh-CN";
-    document.getElementById("chart-label").textContent =
-      (zh ? item.label_zh : item.label_en) + " · " + fmt(item.last, item.decimals) +
-      (item.unit || "") + " · " + item.asof;
-
-    var stale = document.getElementById("stale-note");
-    stale.hidden = !item.stale;
-    if (item.stale) {
-      stale.textContent = zh
-        ? "最近一次抓取未完成，图表显示截至 " + item.asof + " 的数据。"
-        : "The latest refresh did not complete. Chart shows data through " + item.asof + ".";
-    }
-
-    var run = document.getElementById("run-time");
-    if (run) {
-      var stamp = String(data.updated || "").slice(0, 16).replace("T", " ");
-      run.textContent = stamp ? " · " + (zh ? "最近一次运行 " : "Last run ") + stamp + " UTC" : "";
-    }
-  }
-
-  function hideCross() {
-    var cross = document.getElementById("cross");
-    if (cross) cross.innerHTML = "";
-  }
-
-  function showCross(clientX) {
-    if (!state) return;
-    var svg = document.getElementById("chart");
-    var rect = svg.getBoundingClientRect();
-    if (!rect.width) return;
-    var s = state;
-    var vx = ((clientX - rect.left) / rect.width) * s.W;
-    if (vx < s.L) vx = s.L;
-    if (vx > s.W - s.R) vx = s.W - s.R;
-    var pts = s.pts;
-    var best = 0;
-    var bestD = Infinity;
-    for (var i = 0; i < pts.length; i++) {
-      var d = Math.abs(s.xOf(pts[i][0]) - vx);
-      if (d < bestD) { bestD = d; best = i; }
-    }
-    var p = pts[best];
-    var px = s.xOf(p[0]);
-    var py = s.yOf(p[1]);
-    var cross = document.getElementById("cross");
-    if (!cross) return;
-
-    var label = p[0] + " · " + fmt(p[1], s.item.decimals) + (s.item.unit || "");
-    var tw = label.length * 6.3 + 16;
-    var tx = px;
-    if (tx - tw / 2 < s.L) tx = s.L + tw / 2;
-    if (tx + tw / 2 > s.W - s.R) tx = s.W - s.R - tw / 2;
-    var ty = py - 12;
-    if (ty - 16 < s.T) ty = py + 26;
-
-    cross.innerHTML =
-      '<line x1="' + px + '" y1="' + s.T + '" x2="' + px + '" y2="' + (s.H - s.B) + '" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>' +
-      '<line x1="' + s.L + '" y1="' + py + '" x2="' + (s.W - s.R) + '" y2="' + py + '" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>' +
-      '<circle cx="' + px + '" cy="' + py + '" r="3.2" fill="var(--accent)"/>' +
-      '<rect x="' + (tx - tw / 2) + '" y="' + (ty - 15) + '" width="' + tw + '" height="21" rx="3" fill="var(--ink)"/>' +
-      '<text x="' + tx + '" y="' + (ty - 1) + '" text-anchor="middle" font-size="11" fill="var(--paper)">' + label + "</text>";
-  }
-
-  var svgEl = document.getElementById("chart");
-  svgEl.addEventListener("mousemove", function (e) { showCross(e.clientX); });
-  svgEl.addEventListener("mouseleave", hideCross);
-  svgEl.addEventListener("touchstart", function (e) {
-    if (e.touches[0]) showCross(e.touches[0].clientX);
-  }, { passive: true });
-  svgEl.addEventListener("touchmove", function (e) {
-    if (e.touches[0]) {
-      showCross(e.touches[0].clientX);
-      e.preventDefault();
-    }
-  }, { passive: false });
-  svgEl.addEventListener("touchend", hideCross);
-
   document.getElementById("tiles").addEventListener("click", function (e) {
-    var btn = e.target.closest(".tile");
-    if (!btn || !data) return;
-    current = btn.getAttribute("data-key");
-    var all = document.querySelectorAll(".tile");
-    for (var i = 0; i < all.length; i++) {
-      all[i].setAttribute("aria-pressed", all[i] === btn ? "true" : "false");
-    }
-    renderChart();
+    var b = e.target.closest(".tile");
+    if (!b) return;
+    current = b.dataset.key;
+    draw();
   });
 
   document.getElementById("ranges").addEventListener("click", function (e) {
-    var btn = e.target.closest("button");
-    if (!btn || !data) return;
-    range = btn.getAttribute("data-range");
-    var all = document.querySelectorAll("#ranges button");
-    for (var i = 0; i < all.length; i++) {
-      all[i].setAttribute("aria-pressed", all[i] === btn ? "true" : "false");
-    }
-    renderChart();
+    var b = e.target.closest("button");
+    if (!b) return;
+    range = b.dataset.range;
+    draw();
   });
 
-  fetch("/data/market.json")
-    .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-    .then(function (json) {
-      data = json;
-      current = Object.keys(data.series)[0];
-      document.getElementById("snapshot").hidden = false;
-      renderTiles();
-      renderChart();
-      window.__snapshotRender = function () { renderTiles(); renderChart(); };
-    })
-    .catch(function () {});
-})();
-</script>
+  FD.onLang = function () { if (data) { tiles(); draw(); } };
 
-<script>
-(function () {
-  var buttons = document.querySelectorAll("[data-lang]");
-  for (var i = 0; i < buttons.length; i++) {
-    buttons[i].addEventListener("click", function () {
-      var lang = this.getAttribute("data-lang");
-      window.setSiteLang(lang);
-      localStorage.setItem("fomcdata-lang", lang);
-      if (window.__snapshotRender) window.__snapshotRender();
-    });
-  }
-  window.setSiteLang(localStorage.getItem("fomcdata-lang"));
-})();
+  FD.load().then(function (d) {
+    data = d;
+    if (!data.series[current]) current = Object.keys(data.series).find(function (k) { return !data.series[k].hidden; });
+    document.getElementById("snapshot").hidden = false;
+    tiles();
+    draw();
+  }).catch(function () {});
+});
 </script>
 
 </body>

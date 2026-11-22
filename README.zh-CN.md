@@ -22,7 +22,9 @@
 | WTI 原油期货主力合约 | Yahoo Finance `CL=F` | 日 | 2000 |
 | VIX | Yahoo Finance `^VIX` | 日 | 1996 |
 
-页面默认英文。点「中文」会切换索引、图表标签和页面标题，选择保存在 `localStorage`。
+七个页面共用一份样式和三个脚本：索引、图表工作台、宏观卡片、FOMC 日历、方法、研究、关于。图表工作台支持最多三个指标对比、区间与坐标切换、窗口统计，以及 CSV、PNG、SVG 导出。视图状态写在查询串里，可以直接分享。
+
+页面默认英文。点「中文」会切换全部文字、页面标题和图表标签，选择保存在 `localStorage`。
 
 ## 数据怎么更新
 
@@ -39,7 +41,12 @@ FRED 和 Yahoo 要的 User-Agent 不同：FRED 用普通标识，Yahoo 用浏览
 ## 目录
 
 ```
-public/                index.html、style.css、404.html、data/market.json
+public/                索引、图表、宏观、日历、方法、研究、关于、404
+public/style.css       设计令牌与组件
+public/site.js         语言切换与页面元信息
+public/data.js         取数、窗口、统计、URL 状态
+public/chart.js        SVG 绘图、十字准线、导出
+public/data/           market.json、calendar.json
 scripts/fetch_data.py  抓取、合并、降采样、标记失败序列
 .github/workflows/     每日刷新与部署
 wrangler.toml          Worker 名称与资源目录

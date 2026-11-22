@@ -22,7 +22,9 @@ The snapshot tracks seven series and draws them on one chart with 1Y, 3Y, 5Y, 10
 | WTI crude futures, front month | Yahoo Finance `CL=F` | daily | 2000 |
 | VIX | Yahoo Finance `^VIX` | daily | 1996 |
 
-Pages open in English. The `中文` button switches the index, the chart label and the page title, and stores the choice in `localStorage`.
+Seven pages share one stylesheet and three scripts: the index, a chart dashboard, macro cards, an FOMC calendar, methodology, research, and about. The dashboard compares up to three series, switches range and scale, prints window statistics, and exports CSV, PNG or SVG. Its state lives in the query string, so a view can be linked.
+
+Pages open in English. The `中文` button switches all text, the page title and the chart labels, and stores the choice in `localStorage`.
 
 ## How the data updates
 
@@ -39,7 +41,13 @@ FRED and Yahoo want different `User-Agent` headers: a plain one for FRED, a brow
 ## Layout
 
 ```
-public/                index.html, style.css, 404.html, data/market.json
+public/                index, dashboard, macro, calendar, methodology,
+                       research, about, 404
+public/style.css       design tokens and components
+public/site.js         language switch and page metadata
+public/data.js         loading, windows, statistics, URL state
+public/chart.js        SVG renderer, crosshair, exports
+public/data/           market.json, calendar.json
 scripts/fetch_data.py  fetch, merge, thin, and flag stale series
 .github/workflows/     daily refresh and deploy
 wrangler.toml          Worker name and assets directory

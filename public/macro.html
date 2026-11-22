@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro — FOMC Data</title>
+<meta name="description" content="Policy rates, inflation, employment, market and commodity indicators, each linked to the full chart.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script src="/data.js" defer></script>
+</head>
+<body data-title-en="Macro — FOMC Data" data-title-zh="宏观 — FOMC Data" data-desc-en="Policy rates, inflation, employment, market and commodity indicators, each linked to the full chart." data-desc-zh="利率、通胀、就业、市场与商品指标，逐项进入完整图表。">
+
+<header class="global-head">
+  <div class="global-inner">
+    <a class="mark" href="/">FOMC Data</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/"><span class="en">Index</span><span class="zh">索引</span></a>
+      <a href="/dashboard"><span class="en">Dashboard</span><span class="zh">图表</span></a>
+      <a href="/macro" aria-current="page"><span class="en">Macro</span><span class="zh">宏观</span></a>
+      <a href="/calendar"><span class="en">Calendar</span><span class="zh">日历</span></a>
+      <a href="/methodology"><span class="en">Method</span><span class="zh">方法</span></a>
+      <a href="/about"><span class="en">About</span><span class="zh">关于</span></a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <span class="sep">/</span>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="page-head">
+    <h1><span class="en">Macro and markets</span><span class="zh">宏观与市场</span></h1>
+    <p class="lede"><span class="en">Seven series in five groups. Open any card in the dashboard to change the window, compare, or export.</span><span class="zh">五个分组共七个序列。点开任一卡片进入图表，可改区间、做对比或导出。</span></p>
+    <p class="meta-line" id="meta"></p>
+  </div>
+
+  <section>
+    <h2><span class="idx">01</span> <span class="en">Policy rates</span><span class="zh">政策利率</span></h2>
+    <div class="cards" id="cat-rates"></div>
+  </section>
+
+  <section>
+    <h2><span class="idx">02</span> <span class="en">Inflation</span><span class="zh">通胀</span></h2>
+    <div class="cards" id="cat-inflation"></div>
+  </section>
+
+  <section>
+    <h2><span class="idx">03</span> <span class="en">Employment</span><span class="zh">就业</span></h2>
+    <div class="cards" id="cat-labor"></div>
+  </section>
+
+  <section>
+    <h2><span class="idx">04</span> <span class="en">Markets</span><span class="zh">市场</span></h2>
+    <div class="cards" id="cat-markets"></div>
+  </section>
+
+  <section>
+    <h2><span class="idx">05</span> <span class="en">Commodities</span><span class="zh">商品</span></h2>
+    <div class="cards" id="cat-commodities"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="page" style="padding-top:0">
+    <p><span class="en">Definitions, sources and sampling rules are on the methodology page.</span><span class="zh">指标定义、来源与采样规则见方法页。</span></p>
+    <p><a href="/methodology"><span class="en">Methodology</span><span class="zh">指标方法</span></a> · <a href="/dashboard"><span class="en">Dashboard</span><span class="zh">图表</span></a></p>
+  </div>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function spark(vals) {
+    if (vals.length < 2) return "";
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    var span = max - min || 1;
+    return vals.map(function (v, i) {
+      return (i ? "L" : "M") + (i * 100 / (vals.length - 1)).toFixed(1) + " " +
+        (30 - ((v - min) / span) * 26).toFixed(1);
+    }).join(" ");
+  }
+
+  function draw(data) {
+    Object.keys(data.series).forEach(function (k) {
+      var it = data.series[k];
+      if (it.hidden) return;
+      var box = document.getElementById("cat-" + it.category);
+      if (!box) return;
+      var a = document.createElement("a");
+      a.className = "card";
+      a.href = "/dashboard?s=" + k + "&r=5y";
+      a.innerHTML =
+        '<span class="name">' + FD.t(it.tile_en, it.tile_zh) + "</span>" +
+        '<span class="value">' + FD.fmt(it.last, it.decimals) +
+          (it.unit ? '<span class="unit">' + it.unit + "</span>" : "") + "</span>" +
+        '<span class="sub"><span>' + FD.deltaText(it) + "</span><span>" + it.asof + "</span></span>" +
+        '<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="' +
+          spark(it.points.slice(-90).map(function (p) { return p[1]; })) +
+          '" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>';
+      box.appendChild(a);
+    });
+    document.getElementById("meta").textContent = data.updated
+      ? FD.t("Last run ", "最近一次运行 ") + data.updated.slice(0, 16).replace("T", " ") + " UTC"
+      : "";
+    document.querySelectorAll(".cards").forEach(function (c) {
+      if (!c.children.length) c.closest("section").hidden = true;
+    });
+  }
+
+  FD.load().then(function (data) {
+    draw(data);
+    FD.onLang = function () {
+      document.querySelectorAll(".cards").forEach(function (c) { c.innerHTML = ""; });
+      draw(data);
+    };
+  }).catch(function () {});
+});
+</script>
+
+</body>
+</html>
