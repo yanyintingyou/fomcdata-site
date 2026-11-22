@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     FD.ensure([state.keys[0]]).then(function () {
       var it = data.series[state.keys[0]];
-      var snapped = it && it.points ? FD.nearest(it, value, 3) : value;
+      var snapped = it && it.points ? FD.nearest(it, value, 2) : value;
       state.at = snapped;
       if (snapped === value) {
         atNote.hidden = true;
