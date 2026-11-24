@@ -558,6 +558,12 @@ footer a:hover {
 
 .prose li { margin-bottom: 6px; }
 
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--ink);
+}
+
 .prose a, .linkish {
   color: var(--ink);
   text-decoration: none;

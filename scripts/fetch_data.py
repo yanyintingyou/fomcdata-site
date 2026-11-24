@@ -115,6 +115,18 @@ def fetch_yahoo_once(symbol, start, host=YAHOO_HOSTS[0]):
     if not rows:
         raise ValueError("empty yahoo series")
     rows.sort()
+    meta = result.get("meta") or {}
+    end = (meta.get("currentTradingPeriod") or {}).get("regular", {}).get("end")
+    market_time = meta.get("regularMarketTime")
+    # drop today's bar while the regular session is still open
+    if (
+        rows
+        and end
+        and market_time
+        and rows[-1][0] == datetime.fromtimestamp(end, timezone.utc).date()
+        and market_time < end - 60
+    ):
+        rows.pop()
     return rows
 
 

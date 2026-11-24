@@ -33,12 +33,15 @@
 
   <div class="page-head">
     <h1><span class="en">About</span><span class="zh">关于</span></h1>
-    <p class="lede"><span class="en">A small index of public data sources for FOMC research, plus a daily snapshot of seven series drawn from those sources.</span><span class="zh">一个 FOMC 研究用的公开数据源索引，另附七个序列的每日快照。</span></p>
+    <p class="lede"><span class="en">A small index of public data sources for FOMC research, plus a daily snapshot of thirty-five series drawn from those sources.</span><span class="zh">一个 FOMC 研究用的公开数据源索引，另附三十五个序列的每日快照。</span></p>
   </div>
 
   <section class="prose">
     <h2><span class="en">What it is</span><span class="zh">定位</span></h2>
     <p><span class="en">An index of public data sources for research on the Federal Open Market Committee, with a daily snapshot of policy rates, Treasury yields, inflation, employment, credit conditions, equities, gold, crude and volatility. Thirty-five series, drawn from FRED and Yahoo Finance, refreshed once a day at 23:17 UTC.</span><span class="zh">面向美联储研究的数据源索引，附一份政策利率、美债收益率、通胀、就业、信用条件、股指、黄金、原油与波动率的每日快照。三十五个序列取自 FRED 与 Yahoo Finance，每天 23:17 UTC 刷新一次。</span></p>
+
+    <h2><span class="en">Data timing</span><span class="zh">数据时点</span></h2>
+    <p><span class="en">The refresh is scheduled for 23:17 UTC, with a second attempt at 05:17 UTC. GitHub's scheduler can delay a run by several hours. FRED publishes on its own calendar: daily rates can lag by a business day, and the broad dollar index follows the weekly H.10 release. Yahoo quotes are written only after the regular session closes; a run during market hours drops the unfinished bar and keeps the previous close. The <code>updated</code> field is the fetch time, and every series carries its own <code>asof</code> date.</span><span class="zh">刷新安排在 23:17 UTC，05:17 UTC 再试一次。GitHub 的调度可能把运行推迟数小时。FRED 按自己的日历发布：日频利率可能滞后一个工作日，广义美元指数跟随 H.10 的周度发布。Yahoo 行情只在常规交易时段收盘后写入；盘中运行会丢弃未完成的当日 bar，保留上一个收盘价。<code>updated</code> 是抓取时刻，每个序列另有 <code>asof</code> 日期。</span></p>
 
     <h2><span class="en">License</span><span class="zh">许可</span></h2>
     <p><span class="en">Code is MIT. Data follows the terms of its publisher; the list is in <a href="https://github.com/yanyintingyou/fomcdata-site/blob/main/LICENSE-DATA.md">LICENSE-DATA.md</a>.</span><span class="zh">代码用 MIT。数据按发布方条款使用，清单见 <a href="https://github.com/yanyintingyou/fomcdata-site/blob/main/LICENSE-DATA.md">LICENSE-DATA.md</a>。</span></p>
