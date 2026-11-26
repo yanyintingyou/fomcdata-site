@@ -1,5 +1,5 @@
 {
-"updated": "2026-11-22",
+"updated": "2026-11-26",
 "events": [
 {
 "date": "1996-01-31",
@@ -3508,6 +3508,11 @@
 "type": "minutes",
 "meeting": "2026-10-28",
 "url": "https://www.federalreserve.gov/monetarypolicy/fomcminutes20261028.htm"
+},
+{
+"date": "2026-11-25",
+"type": "beige",
+"url": "https://www.federalreserve.gov/monetarypolicy/files/BeigeBook_20261125.pdf"
 },
 {
 "date": "2026-12-09",
